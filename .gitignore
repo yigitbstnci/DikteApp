@@ -1,0 +1,42 @@
+# Xcode
+.DS_Store
+build/
+*.pbxproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.xctest
+*.xcdatamodel
+*.xcdatamodeld
+*.hmap
+*.ipa
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code coverage
+*.gcda
+*.gcno
+*.profdata
+*.profraw
+
+# XcodeGen
+Dikte.xcodeproj/
