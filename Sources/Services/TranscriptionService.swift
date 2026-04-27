@@ -59,7 +59,7 @@ final class TranscriptionService: @unchecked Sendable {
             decodeOptions: DecodingOptions(
                 language: "tr",
                 wordTimestamps: true,
-                suppressBlank: true
+                suppressBlank: false
             )
         )
 

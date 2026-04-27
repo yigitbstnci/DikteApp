@@ -1,249 +1,135 @@
 import SwiftUI
 
 /// Main popover content shown when the menu bar icon is clicked.
+/// "Fluid Zen" Edition
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            headerSection
-
-            Divider()
-
-            // Content based on state
-            if appState.isRecording {
-                recordingSection
-            } else if appState.isProcessing {
-                processingSection
-            } else if appState.showResult {
-                resultSection
-            } else {
-                idleSection
-            }
-
-            Divider()
-
-            // Footer
-            footerSection
-        }
-        .frame(width: 380)
-        .background(.ultraThinMaterial)
-    }
-
-    // MARK: - Header
-
-    private var headerSection: some View {
-        HStack {
-            Image(systemName: "waveform.circle.fill")
-                .font(.title2)
-                .foregroundStyle(.blue)
-            Text("Dikte")
-                .font(.headline)
-
-            Spacer()
-
-            if appState.isRecording {
-                Text(appState.formattedDuration)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(.red)
-
-                Circle()
-                    .fill(.red)
-                    .frame(width: 8, height: 8)
-                    .modifier(PulseAnimation())
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    // MARK: - Idle State
-
-    private var idleSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "mic.badge.plus")
-                .font(.system(size: 36))
-                .foregroundStyle(.secondary)
-
-            Text("Kaydı başlatmak için butona basın")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text("veya ⌘⇧Space kısayolunu kullanın")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-
-            Button(action: { appState.toggleRecording() }) {
-                Label("Kayda Başla", systemImage: "record.circle")
-                    .frame(maxWidth: .infinity)
-            }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(.red)
-            .padding(.horizontal, 20)
-        }
-        .padding(.vertical, 24)
-    }
-
-    // MARK: - Recording State
-
-    private var recordingSection: some View {
-        VStack(spacing: 16) {
-            // Waveform animation
-            HStack(spacing: 3) {
-                ForEach(0..<12, id: \.self) { index in
-                    WaveformBar(index: index)
-                }
-            }
-            .frame(height: 40)
-
-            Text("Kayıt devam ediyor...")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text("Konuşurken metin, link veya görsel kopyalayabilirsiniz")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
-
-            Button(action: { appState.toggleRecording() }) {
-                Label("Kaydı Durdur", systemImage: "stop.circle.fill")
-                    .frame(maxWidth: .infinity)
-            }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(.red)
-            .padding(.horizontal, 20)
-        }
-        .padding(.vertical, 24)
-    }
-
-    // MARK: - Processing State
-
-    private var processingSection: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
-
-            Text(appState.processingStatus)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 32)
-    }
-
-    // MARK: - Result State
-
-    private var resultSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 24) {
+            // Top Section: Title & Settings
             HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                Text("Çıktı hazır!")
-                    .font(.subheadline.weight(.medium))
+                Text("Dikte")
+                    .font(.dzHeading())
+                    .foregroundColor(.dzTextPrimary)
+                
                 Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-
-            // Scrollable result text
-            ScrollView {
-                Text(appState.mergedOutput)
-                    .font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-            }
-            .frame(maxHeight: 200)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .padding(.horizontal, 12)
-
-            // Action buttons
-            HStack(spacing: 8) {
-                Button(action: { appState.copyOutputToClipboard() }) {
-                    Label("Panoya Kopyala", systemImage: "doc.on.doc")
-                        .frame(maxWidth: .infinity)
-                }
-                .controlSize(.large)
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
-
+                
                 Button(action: {
-                    appState.showResult = false
-                    appState.mergedOutput = ""
+                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                 }) {
-                    Label("Temizle", systemImage: "xmark.circle")
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.dzTextMuted)
                 }
-                .controlSize(.large)
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
+                
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Image(systemName: "power")
+                        .font(.system(size: 14))
+                        .foregroundColor(.dzTextMuted)
+                }
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
+            
+            // Center Section: Status Ring
+            statusRing
+            
+            // Bottom Section: Context Info or Toggle
+            contextToggle
         }
+        .padding(24)
+        .frame(width: 320)
+        // macOS MenuBarExtra window style will frame this, but we apply our custom glass background
+        // Note: MenuBarExtra inherently has some background on macOS, but .window style allows custom backgrounds
+        .glassPanel(radius: 18)
     }
-
-    // MARK: - Footer
-
-    private var footerSection: some View {
-        HStack {
-            Button("Ayarlar...") {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+    
+    // MARK: - Status Ring
+    
+    private var statusRing: some View {
+        Button(action: {
+            if !appState.isProcessing {
+                appState.toggleRecording()
             }
-            .buttonStyle(.plain)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-            Spacer()
-
-            Button("Çıkış") {
-                NSApplication.shared.terminate(nil)
+        }) {
+            ZStack {
+                // Background glow/ring
+                Circle()
+                    .fill(Color.dzSurfaceGlass)
+                    .frame(width: 120, height: 120)
+                    .shadow(color: appState.isRecording ? Color.dzPrimary.opacity(0.5) : .clear, radius: 20)
+                
+                if appState.isRecording {
+                    // Fluid Blob for recording
+                    FluidBlobView()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                    
+                    Text(appState.formattedDuration)
+                        .font(.dzHeading())
+                        .foregroundColor(.dzTextPrimary)
+                        .monospacedDigit()
+                } else if appState.isProcessing {
+                    ProgressView()
+                        .controlSize(.regular)
+                } else if appState.showResult {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 40, weight: .semibold))
+                        .foregroundColor(.dzSuccess)
+                } else {
+                    // Idle
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.dzTextMuted)
+                }
             }
-            .buttonStyle(.plain)
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .frame(height: 140) // Give it breathing room
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .buttonStyle(SquishyButtonStyle())
+    }
+    
+    // MARK: - Context Toggle
+    
+    private var contextToggle: some View {
+        VStack(spacing: 8) {
+            if appState.isRecording {
+                Text("Kayıt devam ediyor...")
+                    .font(.dzSmallText())
+                    .foregroundColor(.dzTextMuted)
+                
+                Text("Panoya bir şeyler kopyalayın")
+                    .font(.dzSmallText())
+                    .foregroundColor(.dzTextMuted)
+            } else if appState.isProcessing {
+                Text("Yerel olarak işleniyor...")
+                    .font(.dzSmallText())
+                    .foregroundColor(.dzTextPrimary)
+            } else if appState.showResult {
+                Text("Panoya Kopyalandı")
+                    .font(.dzButtonText())
+                    .foregroundColor(.dzSuccess)
+            } else {
+                Text("Başlamak için dokun veya ⌘⇧Space")
+                    .font(.dzSmallText())
+                    .foregroundColor(.dzTextMuted)
+            }
+        }
+        .frame(height: 40)
     }
 }
 
-// MARK: - Waveform Bar Animation
-
-struct WaveformBar: View {
-    let index: Int
-
-    @State private var height: CGFloat = 4
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 2)
-            .fill(.red.gradient)
-            .frame(width: 4, height: height)
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: Double.random(in: 0.3...0.7))
-                    .repeatForever(autoreverses: true)
-                    .delay(Double(index) * 0.05)
-                ) {
-                    height = CGFloat.random(in: 10...36)
-                }
-            }
+// Custom button style for the squishy ring click
+struct SquishyButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 
-// MARK: - Pulse Animation Modifier
-
-struct PulseAnimation: ViewModifier {
-    @State private var isAnimating = false
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(isAnimating ? 0.3 : 1.0)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                    isAnimating = true
-                }
-            }
-    }
+#Preview {
+    MenuBarView()
 }

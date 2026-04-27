@@ -2,7 +2,7 @@ name: Dikte
 options:
   bundleIdPrefix: com.dikte
   deploymentTarget:
-    macOS: "14.0"
+    macOS: "15.0"
   xcodeVersion: "16.0"
   minimumXcodeGenVersion: "2.38.0"
 
@@ -30,7 +30,7 @@ targets:
         PRODUCT_NAME: Dikte
         INFOPLIST_FILE: Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/Dikte.entitlements
-        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
         SWIFT_VERSION: "5.9"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: true

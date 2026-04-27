@@ -1,14 +1,17 @@
 import Foundation
 import AppKit
 
+import Observation
+
 /// Monitors the system clipboard (NSPasteboard) for changes while recording.
 /// Only active between startMonitoring() and stopMonitoring() calls.
 @MainActor
+@Observable
 final class ClipboardMonitorService {
 
     private var timer: Timer?
     private var lastChangeCount: Int = 0
-    private var capturedItems: [ClipboardItem] = []
+    private(set) var items: [ClipboardItem] = []
     private var monitoringStartTime: Date = .distantPast
 
     /// Base directory to save all clipboard artifacts (images + text files)
@@ -21,7 +24,7 @@ final class ClipboardMonitorService {
 
     /// Begin watching the clipboard. Called when recording starts.
     func startMonitoring() {
-        capturedItems = []
+        items = []
         monitoringStartTime = Date()
         lastChangeCount = NSPasteboard.general.changeCount
 
@@ -38,8 +41,8 @@ final class ClipboardMonitorService {
     func stopMonitoring() -> [ClipboardItem] {
         timer?.invalidate()
         timer = nil
-        print("[Dikte] Clipboard izleme durdu. \(capturedItems.count) öğe yakalandı.")
-        return capturedItems
+        print("[Dikte] Clipboard izleme durdu. \(items.count) öğe yakalandı.")
+        return items
     }
 
     // MARK: - Private
@@ -62,7 +65,7 @@ final class ClipboardMonitorService {
         // Check for image first (higher priority if both exist)
         if let image = pasteboard.readObjects(forClasses: [NSImage.self], options: nil)?.first as? NSImage {
             if let item = saveImage(image, timestamp: now, sourceApp: sourceApp) {
-                capturedItems.append(item)
+                items.append(item)
                 print("[Dikte] Görsel yakalandı [\(sourceApp ?? "?")]")
             }
         }
@@ -70,7 +73,7 @@ final class ClipboardMonitorService {
         else if let string = pasteboard.string(forType: .string), !string.isEmpty {
             let isURL = string.hasPrefix("http://") || string.hasPrefix("https://")
             let item = saveText(string, isURL: isURL, timestamp: now, sourceApp: sourceApp)
-            capturedItems.append(item)
+            items.append(item)
             print("[Dikte] \(isURL ? "URL" : "Metin") yakalandı [\(sourceApp ?? "?")]")
         }
     }

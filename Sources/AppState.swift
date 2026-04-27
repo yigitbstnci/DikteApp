@@ -140,6 +140,7 @@ final class AppState {
                 await MainActor.run {
                     self.currentSession = session
                     self.mergedOutput = merged
+                    self.copyOutputToClipboard() // Otomatik kopyalama eklendi
                     self.isProcessing = false
                     self.processingStatus = ""
                     self.showResult = true
