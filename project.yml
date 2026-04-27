@@ -40,3 +40,31 @@ targets:
       - package: WhisperKit
         product: WhisperKit
       - package: KeyboardShortcuts
+
+  DikteTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dikte.app.tests
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+    dependencies:
+      - target: Dikte
+
+schemes:
+  Dikte:
+    build:
+      targets:
+        Dikte: all
+        DikteTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DikteTests

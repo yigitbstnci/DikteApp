@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import KeyboardShortcuts
 
 /// Dikte — Menu Bar only macOS app.
@@ -11,6 +12,9 @@ struct DikteApp: App {
         MenuBarExtra {
             MenuBarView()
                 .environment(appState)
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                    appState.releaseAudioRouting()
+                }
         } label: {
             // Menu bar icon changes based on recording state
             Image(systemName: appState.isRecording ? "record.circle.fill" : "mic.badge.plus")
