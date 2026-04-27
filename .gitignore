@@ -40,3 +40,6 @@ fastlane/test_output
 
 # XcodeGen
 Dikte.xcodeproj/
+
+# Custom files
+TODO.md
