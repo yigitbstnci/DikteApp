@@ -13,8 +13,8 @@ final class ClipboardMonitorService {
 
     /// Base directory to save all clipboard artifacts (images + text files)
     private let storageDir: URL = {
-        let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("dikte_clipboard_assets", isDirectory: true)
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = appSupport.appendingPathComponent("Dikte/ClipboardAssets", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
