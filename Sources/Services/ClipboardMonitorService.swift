@@ -11,10 +11,10 @@ final class ClipboardMonitorService {
     private var capturedItems: [ClipboardItem] = []
     private var monitoringStartTime: Date = .distantPast
 
-    /// Directory to save clipboard images
-    private let imageStorageDir: URL = {
+    /// Base directory to save all clipboard artifacts (images + text files)
+    private let storageDir: URL = {
         let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("dikte_clipboard_images", isDirectory: true)
+            .appendingPathComponent("dikte_clipboard_assets", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
@@ -31,18 +31,23 @@ final class ClipboardMonitorService {
                 self?.checkClipboard()
             }
         }
-        print("📋 Clipboard monitoring started")
+        print("[Dikte] Clipboard izleme başladı")
     }
 
     /// Stop watching and return all captured items.
     func stopMonitoring() -> [ClipboardItem] {
         timer?.invalidate()
         timer = nil
-        print("📋 Clipboard monitoring stopped. Captured \(capturedItems.count) item(s).")
+        print("[Dikte] Clipboard izleme durdu. \(capturedItems.count) öğe yakalandı.")
         return capturedItems
     }
 
     // MARK: - Private
+
+    /// Returns the name of the currently focused application (e.g. "Safari", "Ghostty")
+    private func frontmostAppName() -> String? {
+        NSWorkspace.shared.frontmostApplication?.localizedName
+    }
 
     private func checkClipboard() {
         let pasteboard = NSPasteboard.general
@@ -52,32 +57,52 @@ final class ClipboardMonitorService {
         lastChangeCount = currentCount
 
         let now = Date()
+        let sourceApp = frontmostAppName()
 
         // Check for image first (higher priority if both exist)
         if let image = pasteboard.readObjects(forClasses: [NSImage.self], options: nil)?.first as? NSImage {
-            if let item = saveImage(image, timestamp: now) {
+            if let item = saveImage(image, timestamp: now, sourceApp: sourceApp) {
                 capturedItems.append(item)
-                print("📋 Captured image at \(now)")
+                print("[Dikte] Görsel yakalandı [\(sourceApp ?? "?")]")
             }
         }
         // Check for string (URL or text)
         else if let string = pasteboard.string(forType: .string), !string.isEmpty {
             let isURL = string.hasPrefix("http://") || string.hasPrefix("https://")
-            let item = ClipboardItem(
-                id: UUID(),
-                timestamp: now,
-                type: isURL ? .url : .text,
-                textContent: string,
-                imageFilePath: nil,
-                relativeTime: now.timeIntervalSince(monitoringStartTime)
-            )
+            let item = saveText(string, isURL: isURL, timestamp: now, sourceApp: sourceApp)
             capturedItems.append(item)
-            print("📋 Captured \(isURL ? "URL" : "text") at \(now): \(string.prefix(80))...")
+            print("[Dikte] \(isURL ? "URL" : "Metin") yakalandı [\(sourceApp ?? "?")]")
         }
     }
 
-    /// Saves an NSImage to disk and returns a ClipboardItem pointing to it.
-    private func saveImage(_ image: NSImage, timestamp: Date) -> ClipboardItem? {
+    /// Saves text/URL content to a .txt file and returns a ClipboardItem with file path + size.
+    private func saveText(_ content: String, isURL: Bool, timestamp: Date, sourceApp: String?) -> ClipboardItem {
+        let fileName = "clipboard_\(UUID().uuidString).txt"
+        let fileURL = storageDir.appendingPathComponent(fileName)
+        var fileSize: Int64 = Int64(content.utf8.count)
+
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+            let attrs = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            fileSize = (attrs[.size] as? Int64) ?? fileSize
+        } catch {
+            print("[Dikte] Metin dosyası kaydedilemedi: \(error.localizedDescription)")
+        }
+
+        return ClipboardItem(
+            id: UUID(),
+            timestamp: timestamp,
+            type: isURL ? .url : .text,
+            textContent: content,
+            imageFilePath: fileURL.path,
+            sourceApp: sourceApp,
+            fileSize: fileSize,
+            relativeTime: timestamp.timeIntervalSince(monitoringStartTime)
+        )
+    }
+
+    /// Saves an NSImage to disk and returns a ClipboardItem with file path + size.
+    private func saveImage(_ image: NSImage, timestamp: Date, sourceApp: String?) -> ClipboardItem? {
         guard let tiffData = image.tiffRepresentation,
               let bitmapRep = NSBitmapImageRep(data: tiffData),
               let pngData = bitmapRep.representation(using: .png, properties: [:]) else {
@@ -85,20 +110,25 @@ final class ClipboardMonitorService {
         }
 
         let fileName = "clipboard_\(UUID().uuidString).png"
-        let fileURL = imageStorageDir.appendingPathComponent(fileName)
+        let fileURL = storageDir.appendingPathComponent(fileName)
 
         do {
             try pngData.write(to: fileURL)
+            let attrs = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            let fileSize = (attrs[.size] as? Int64) ?? Int64(pngData.count)
+
             return ClipboardItem(
                 id: UUID(),
                 timestamp: timestamp,
                 type: .image,
                 textContent: nil,
                 imageFilePath: fileURL.path,
+                sourceApp: sourceApp,
+                fileSize: fileSize,
                 relativeTime: timestamp.timeIntervalSince(monitoringStartTime)
             )
         } catch {
-            print("❌ Failed to save clipboard image: \(error)")
+            print("[Dikte] Görsel kaydedilemedi: \(error.localizedDescription)")
             return nil
         }
     }
