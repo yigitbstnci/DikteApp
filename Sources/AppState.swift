@@ -37,6 +37,8 @@ final class AppState {
     let clipboardMonitor = ClipboardMonitorService()
     let transcriptionService = TranscriptionService()
     let mergerService = MergerService()
+    let audioInputRouteService = AudioInputRouteService()
+    let outputSilenceService = OutputSilenceService()
 
     // MARK: Timer
     private var durationTimer: Timer?
@@ -49,9 +51,12 @@ final class AppState {
             }
         }
 
-        // Pre-load the Whisper model in the background so first recording is fast
-        Task {
-            await transcriptionService.preload()
+        // Pre-load the Whisper model in the background so first recording is fast.
+        // XCTest launches the app target as a test host; avoid model downloads there.
+        if !Self.isRunningTests {
+            Task {
+                await transcriptionService.preload()
+            }
         }
     }
 
@@ -74,11 +79,15 @@ final class AppState {
         currentSession = nil
         recordingDuration = 0
 
-        // Start services
-        clipboardMonitor.startMonitoring()
-
         do {
+            if !Self.isRunningTests {
+                try audioInputRouteService.routeToBuiltInForRecording()
+            }
             try audioRecorder.startRecording()
+            if !Self.isRunningTests {
+                outputSilenceService.silenceForRecording()
+            }
+            clipboardMonitor.startMonitoring()
             isRecording = true
 
             // Start duration timer
@@ -88,7 +97,12 @@ final class AppState {
                 }
             }
         } catch {
-            print("❌ Failed to start recording: \(error)")
+            if !Self.isRunningTests {
+                outputSilenceService.restore()
+                audioInputRouteService.restoreDefaultInput()
+            }
+            DikteLog.error("app", "recording.start.failed", error.localizedDescription)
+            processingStatus = error.localizedDescription
         }
     }
 
@@ -101,11 +115,15 @@ final class AppState {
 
         // Stop services and capture results
         let audioFileURL = audioRecorder.stopRecording()
+        if !Self.isRunningTests {
+            outputSilenceService.restore()
+            audioInputRouteService.restoreDefaultInput()
+        }
         let clipboardItems = clipboardMonitor.stopMonitoring()
         let recordingStartTime = audioRecorder.recordingStartTime
 
         guard let audioURL = audioFileURL else {
-            processingStatus = "Ses kaydı alınamadı."
+            processingStatus = audioRecorder.lastErrorMessage ?? "Ses kaydı alınamadı."
             return
         }
 
@@ -140,6 +158,7 @@ final class AppState {
                 await MainActor.run {
                     self.currentSession = session
                     self.mergedOutput = merged
+                    self.copyOutputToClipboard() // Otomatik kopyalama eklendi
                     self.isProcessing = false
                     self.processingStatus = ""
                     self.showResult = true
@@ -153,6 +172,11 @@ final class AppState {
         }
     }
 
+    func releaseAudioRouting() {
+        outputSilenceService.restore()
+        audioInputRouteService.restoreDefaultInput()
+    }
+
     func copyOutputToClipboard() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -164,5 +188,9 @@ final class AppState {
         let minutes = Int(recordingDuration) / 60
         let seconds = Int(recordingDuration) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 }

@@ -33,7 +33,14 @@ Since Dikte uses `XcodeGen`, the `.xcodeproj` file is generated from `project.ym
    ```bash
    xcodegen generate
    ```
-3. Open `Dikte.xcodeproj` and run the app.
+3. Run from Terminal when debugging:
+   ```bash
+   make run
+   ```
+
+`make run` regenerates the Xcode project, builds the Debug app, stops any already-running Dikte instance, launches `Dikte.app`, and tails `~/Library/Logs/Dikte/dikte.log` in the same Terminal session. Warnings and errors are marked with `!! WARNING` / `!! ERROR`.
+
+You can still open `Dikte.xcodeproj` and run the app from Xcode when UI debugging is more convenient.
 
 > **Note on First Run:** The app will download the `openai_whisper-large-v3_turbo` model (~954 MB) to `~/Library/Application Support/Dikte/Models`. This only happens once.
 

@@ -58,71 +58,57 @@ final class MergerService: Sendable {
             }
             .sorted { $0.relativeTime < $1.relativeTime }
 
+        let transcriptPieces = Self.makeTranscriptPieces(from: transcriptSegments)
+        guard !transcriptPieces.isEmpty else {
+            if clipboardItems.isEmpty { return "" }
+            var output = "Attachments\n"
+            for (i, item) in clipboardItems.enumerated() {
+                output += "\n" + item.attachmentLine(index: i + 1)
+            }
+            return output
+        }
+
         // Build continuous text with inline annotation markers
         var textParts: [String] = []
         var attachments: [(index: Int, item: ClipboardItem)] = []
         var clipboardIndex = 0
         var annotationCounter = 0
 
-        for (segIndex, segment) in transcriptSegments.enumerated() {
-            // Insert annotations for clipboard items that fall BEFORE this segment
+        func appendAnnotation(for item: ClipboardItem) {
+            annotationCounter += 1
+            attachments.append((annotationCounter, item))
+            Self.appendAnnotationMarker(Self.superscript(annotationCounter), to: &textParts)
+        }
+
+        for piece in transcriptPieces {
+            // Insert annotations for clipboard items that fall BEFORE this transcript piece.
             while clipboardIndex < sortedClipboard.count {
                 let clipRelative = sortedClipboard[clipboardIndex].relativeTime
-                if clipRelative < segment.startTime {
-                    annotationCounter += 1
-                    attachments.append((annotationCounter, sortedClipboard[clipboardIndex].item))
-                    textParts.append(" " + Self.superscript(annotationCounter))
+                if clipRelative < piece.startTime {
+                    appendAnnotation(for: sortedClipboard[clipboardIndex].item)
                     clipboardIndex += 1
                 } else {
                     break
                 }
             }
 
-            // Add the speech text (trim and join into continuous flow)
-            let trimmed = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty {
-                // Add space between segments if needed
-                if let last = textParts.last, !last.hasSuffix(" ") && !last.hasSuffix("\n") {
-                    textParts.append(" ")
-                }
-                textParts.append(trimmed)
-            }
+            Self.appendSpeech(piece.text, to: &textParts)
 
-            // Insert annotations for clipboard items DURING this segment
+            // Insert annotations for clipboard items that fall inside this piece.
             while clipboardIndex < sortedClipboard.count {
                 let clipRelative = sortedClipboard[clipboardIndex].relativeTime
-                if clipRelative >= segment.startTime && clipRelative <= segment.endTime {
-                    annotationCounter += 1
-                    attachments.append((annotationCounter, sortedClipboard[clipboardIndex].item))
-                    textParts.append(" " + Self.superscript(annotationCounter))
+                if clipRelative >= piece.startTime && clipRelative <= piece.endTime {
+                    appendAnnotation(for: sortedClipboard[clipboardIndex].item)
                     clipboardIndex += 1
                 } else {
                     break
-                }
-            }
-
-            // Insert annotations for clips between this segment and the next
-            if segIndex < transcriptSegments.count - 1 {
-                let nextStart = transcriptSegments[segIndex + 1].startTime
-                while clipboardIndex < sortedClipboard.count {
-                    let clipRelative = sortedClipboard[clipboardIndex].relativeTime
-                    if clipRelative > segment.endTime && clipRelative < nextStart {
-                        annotationCounter += 1
-                        attachments.append((annotationCounter, sortedClipboard[clipboardIndex].item))
-                        textParts.append(" " + Self.superscript(annotationCounter))
-                        clipboardIndex += 1
-                    } else {
-                        break
-                    }
                 }
             }
         }
 
         // Append any remaining clipboard items after the last segment
         while clipboardIndex < sortedClipboard.count {
-            annotationCounter += 1
-            attachments.append((annotationCounter, sortedClipboard[clipboardIndex].item))
-            textParts.append(" " + Self.superscript(annotationCounter))
+            appendAnnotation(for: sortedClipboard[clipboardIndex].item)
             clipboardIndex += 1
         }
 
@@ -139,5 +125,70 @@ final class MergerService: Sendable {
 
         return output
     }
-}
 
+    private struct TranscriptPiece {
+        let text: String
+        let startTime: TimeInterval
+        let endTime: TimeInterval
+    }
+
+    private static func makeTranscriptPieces(from segments: [TranscriptSegment]) -> [TranscriptPiece] {
+        segments.flatMap { segment -> [TranscriptPiece] in
+            let words = segment.words.compactMap { word -> TranscriptPiece? in
+                let trimmed = word.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return nil }
+                return TranscriptPiece(
+                    text: trimmed,
+                    startTime: word.startTime,
+                    endTime: max(word.endTime, word.startTime)
+                )
+            }
+
+            if !words.isEmpty {
+                return words
+            }
+
+            let trimmed = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return [] }
+            return [
+                TranscriptPiece(
+                    text: trimmed,
+                    startTime: segment.startTime,
+                    endTime: max(segment.endTime, segment.startTime)
+                )
+            ]
+        }
+    }
+
+    private static func appendSpeech(_ speech: String, to textParts: inout [String]) {
+        let trimmed = speech.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if textParts.isEmpty {
+            textParts.append(trimmed)
+            return
+        }
+
+        if startsWithPunctuation(trimmed) {
+            textParts.append(trimmed)
+            return
+        }
+
+        if let last = textParts.last, !last.hasSuffix(" "), !last.hasSuffix("\n") {
+            textParts.append(" ")
+        }
+        textParts.append(trimmed)
+    }
+
+    private static func appendAnnotationMarker(_ marker: String, to textParts: inout [String]) {
+        if let last = textParts.last, !last.hasSuffix(" "), !last.hasSuffix("\n") {
+            textParts.append(" ")
+        }
+        textParts.append(marker)
+    }
+
+    private static func startsWithPunctuation(_ text: String) -> Bool {
+        guard let scalar = text.unicodeScalars.first else { return false }
+        return CharacterSet.punctuationCharacters.contains(scalar)
+    }
+}

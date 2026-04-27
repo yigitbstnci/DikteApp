@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import KeyboardShortcuts
 
 /// Dikte — Menu Bar only macOS app.
@@ -11,6 +12,9 @@ struct DikteApp: App {
         MenuBarExtra {
             MenuBarView()
                 .environment(appState)
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                    appState.releaseAudioRouting()
+                }
         } label: {
             // Menu bar icon changes based on recording state
             Image(systemName: appState.isRecording ? "record.circle.fill" : "mic.badge.plus")
@@ -21,6 +25,24 @@ struct DikteApp: App {
                 )
         }
         .menuBarExtraStyle(.window)
+        .onChange(of: appState.isRecording) { _, isRecording in
+            if isRecording {
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            }
+        }
+        .onChange(of: appState.showResult) { _, showResult in
+            if showResult {
+                // Auto hide HUD after 3 seconds when result is shown
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    appState.showResult = false
+                    if !appState.isRecording && !appState.isProcessing {
+                        FloatingHUDManager.shared.hideHUD()
+                    }
+                }
+            } else if !appState.isRecording && !appState.isProcessing {
+                FloatingHUDManager.shared.hideHUD()
+            }
+        }
 
         // Settings window for keyboard shortcut configuration
         Settings {
