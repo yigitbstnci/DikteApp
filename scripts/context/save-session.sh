@@ -31,6 +31,19 @@ if grep -E -i "$private_pattern" "$summary" >/dev/null 2>&1; then
   exit 2
 fi
 
+raw_log_line_count="$(
+  awk '
+    /^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}[[:space:]]+(ACT|INF|WRN|ERR)[[:space:]]+[[:alnum:]_.-]+\.[[:alnum:]_.-]+/ { count++ }
+    /^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}[[:space:]]+(--|!!)[[:space:]]+(ACTION|INFO|WARNING|ERROR)/ { count++ }
+    /^[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}[[:space:]]+(--|!!)[[:space:]]+(ACTION|INFO|WARNING|ERROR)/ { count++ }
+    END { print count + 0 }
+  ' "$summary"
+)"
+if (( raw_log_line_count >= 5 )); then
+  printf 'save-session: possible raw Dikte runtime log dump found; save a concise summary instead\n' >&2
+  exit 2
+fi
+
 if [[ -z "$title" ]]; then
   title="$(
     awk '/^#[[:space:]]+/ {

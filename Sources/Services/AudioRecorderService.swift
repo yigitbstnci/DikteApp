@@ -18,7 +18,7 @@ final class AudioRecorderService {
 
     /// Starts recording from the default input device.
     /// Throws if the microphone is unavailable or the engine fails to start.
-    func startRecording() throws {
+    func startRecording(sessionID: String? = nil) throws {
         lastErrorMessage = nil
         metrics.reset()
         outputURL = nil
@@ -34,6 +34,11 @@ final class AudioRecorderService {
         let inputDeviceName = AudioInputDeviceService.defaultInputDevice()?.name ?? "Unknown Input"
 
         guard inputFormat.channelCount > 0, inputFormat.sampleRate > 0 else {
+            DikteLog.error("audio", "input.unavailable", "Mikrofon giriş formatı kullanılamıyor.", metadata: DikteLog.metadata([
+                "channels": inputFormat.channelCount,
+                "device": inputDeviceName,
+                "sample_rate_hz": Int(inputFormat.sampleRate)
+            ], sessionID: sessionID))
             throw AudioRecorderError.inputUnavailable
         }
 
@@ -61,7 +66,9 @@ final class AudioRecorderService {
                     try audioFile.write(from: buffer)
                     recordingMetrics.add(buffer: buffer)
                 } catch {
-                    DikteLog.error("audio", "file.write.failed", error.localizedDescription)
+                    DikteLog.error("audio", "file.write.failed", error.localizedDescription, metadata: DikteLog.metadata([
+                        "buffer_frames": buffer.frameLength
+                    ], sessionID: sessionID))
                 }
             }
             tapInstalled = true
@@ -74,7 +81,12 @@ final class AudioRecorderService {
             self.outputURL = fileURL
             self.recordingStartTime = Date()
 
-            DikteLog.action("audio", "recording.start", "\(Int(inputFormat.sampleRate)) Hz, \(inputFormat.channelCount) kanal, \(inputDeviceName)")
+            DikteLog.action("audio", "recording.start", "Ses motoru başladı.", metadata: DikteLog.metadata([
+                "channels": inputFormat.channelCount,
+                "device": inputDeviceName,
+                "file": fileURL.lastPathComponent,
+                "sample_rate_hz": Int(inputFormat.sampleRate)
+            ], sessionID: sessionID))
         } catch {
             if tapInstalled {
                 inputNode.removeTap(onBus: 0)
@@ -89,7 +101,7 @@ final class AudioRecorderService {
     }
 
     /// Stops recording and returns the URL of the recorded audio file.
-    func stopRecording() -> URL? {
+    func stopRecording(sessionID: String? = nil) -> URL? {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
@@ -101,7 +113,7 @@ final class AudioRecorderService {
 
         guard let fileURL else {
             lastErrorMessage = "Ses kaydı dosyası oluşturulamadı."
-            DikteLog.error("audio", "recording.stop", "Dosya yok.")
+            DikteLog.error("audio", "recording.stop", "Dosya yok.", metadata: DikteLog.metadata(sessionID: sessionID))
             return nil
         }
 
@@ -112,18 +124,34 @@ final class AudioRecorderService {
         DikteLog.action(
             "audio",
             "recording.stop",
-            "\(String(format: "%.2f", duration))s, \(byteCount) bytes, \(frameCount) frame, rms \(String(format: "%.4f", snapshot.rms)), peak \(String(format: "%.4f", snapshot.peak))"
+            "Ses motoru durdu.",
+            metadata: DikteLog.metadata([
+                "bytes": byteCount,
+                "duration_s": String(format: "%.2f", duration),
+                "file": fileURL.lastPathComponent,
+                "frames": frameCount,
+                "peak": String(format: "%.4f", snapshot.peak),
+                "rms": String(format: "%.4f", snapshot.rms),
+                "samples": snapshot.sampleCount
+            ], sessionID: sessionID)
         )
 
         guard frameCount > 0, byteCount > 4_096 else {
             lastErrorMessage = "Mikrofondan ses verisi alınamadı. Sistem giriş cihazını kontrol edin."
-            DikteLog.error("audio", "recording.empty", "Varsayılan mikrofon veya Bluetooth giriş cihazı çalışmıyor olabilir.")
+            DikteLog.error("audio", "recording.empty", "Varsayılan mikrofon veya Bluetooth giriş cihazı çalışmıyor olabilir.", metadata: DikteLog.metadata([
+                "bytes": byteCount,
+                "frames": frameCount
+            ], sessionID: sessionID))
             return nil
         }
 
         guard snapshot.sampleCount == 0 || duration < 1.0 || snapshot.peak >= 0.003 else {
             lastErrorMessage = "Mikrofon sinyali çok düşük. Giriş cihazını veya mikrofon iznini kontrol edin."
-            DikteLog.warning("audio", "recording.lowSignal", "Ses kaydı var ama sinyal seviyesi çok düşük.")
+            DikteLog.warning("audio", "recording.lowSignal", "Ses kaydı var ama sinyal seviyesi çok düşük.", metadata: DikteLog.metadata([
+                "duration_s": String(format: "%.2f", duration),
+                "peak": String(format: "%.4f", snapshot.peak),
+                "rms": String(format: "%.4f", snapshot.rms)
+            ], sessionID: sessionID))
             return nil
         }
 

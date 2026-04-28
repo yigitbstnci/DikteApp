@@ -9,12 +9,12 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 ## Current Implementation
 
 - `project.yml` drives the generated Xcode project.
-- `make run` is the default debug path and launches the built `.app` through LaunchServices.
+- `make run` is the default debug path, launches the built `.app` through LaunchServices, and stops its terminal log stream when the Dikte process exits.
 - `make test` runs the unit-test scheme.
-- Structured logs are written to `~/Library/Logs/Dikte/dikte.log`.
+- Structured logs are written to `~/Library/Logs/Dikte/dikte.log` with session correlation IDs and key-value diagnostic metadata.
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.
-- Unit tests currently cover merge behavior and cached model folder detection.
+- Unit tests currently cover merge behavior, cached model folder detection, and log line formatting.
 
 ## Known Gaps
 
@@ -30,6 +30,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - `docs/context/index.yml` is the structured context index.
 - `make context-load` prints bounded agent startup context.
 - `make context-save` creates a session summary and updates the index.
+- Context session summaries are reserved for meaningful development blocks or daily summaries; runtime log sessions and raw log dumps stay out of committed context.
 - `make context-check` validates the context surface.
 - No active context-system implementation task remains; `DKT-TASK-0001` is now an ongoing maintenance protocol.
 

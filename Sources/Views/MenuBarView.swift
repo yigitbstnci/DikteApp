@@ -16,7 +16,13 @@ struct MenuBarView: View {
                 Spacer()
                 
                 Button(action: {
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    let delivered = NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    DikteLog.action("app", "settings.open.request", "Ayarlar penceresi açma isteği alındı.", metadata: [
+                        "delivered": delivered,
+                        "is_processing": appState.isProcessing,
+                        "is_recording": appState.isRecording,
+                        "show_result": appState.showResult
+                    ])
                 }) {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 14))

@@ -19,34 +19,50 @@ actor TranscriptionService {
         do {
             _ = try await loadWhisperKit()
         } catch {
-            DikteLog.error("stt", "model.preload", "Model yüklenemedi: \(error.localizedDescription)")
+            DikteLog.error("stt", "model.preload", "Model yüklenemedi: \(error.localizedDescription)", metadata: [
+                "model": Self.modelName
+            ])
         }
     }
 
-    func transcribe(audioFileURL: URL) async throws -> [TranscriptSegment] {
-        let whisper = try await loadWhisperKit()
+    func transcribe(audioFileURL: URL, sessionID: String? = nil) async throws -> [TranscriptSegment] {
+        let whisper = try await loadWhisperKit(sessionID: sessionID)
         let audioDuration = Self.audioDuration(of: audioFileURL)
+        let byteCount = Self.fileSize(of: audioFileURL)
 
         let t = Date()
+        DikteLog.action("stt", "transcribe.start", "Whisper transkripsiyonu başladı.", metadata: DikteLog.metadata([
+            "audio_duration_s": String(format: "%.2f", audioDuration),
+            "bytes": byteCount,
+            "file": audioFileURL.lastPathComponent,
+            "language": "tr",
+            "word_timestamps": true
+        ], sessionID: sessionID))
+
         let results = try await whisper.transcribe(
             audioPath: audioFileURL.path,
             decodeOptions: Self.primaryDecodingOptions
         )
 
-        Self.logResults(results, event: "transcribe.primary")
+        Self.logResults(results, event: "transcribe.primary", sessionID: sessionID)
         var segments = Self.makeTranscriptSegments(from: results, audioDuration: audioDuration)
 
         if segments.isEmpty {
-            DikteLog.warning("stt", "transcribe.retry", "Segment bulunamadı; düz transkripsiyon modunda tekrar deneniyor.")
+            DikteLog.warning("stt", "transcribe.retry", "Segment bulunamadı; düz transkripsiyon modunda tekrar deneniyor.", metadata: DikteLog.metadata([
+                "word_timestamps": false
+            ], sessionID: sessionID))
             let fallbackResults = try await whisper.transcribe(
                 audioPath: audioFileURL.path,
                 decodeOptions: Self.fallbackDecodingOptions
             )
-            Self.logResults(fallbackResults, event: "transcribe.fallback")
+            Self.logResults(fallbackResults, event: "transcribe.fallback", sessionID: sessionID)
             segments = Self.makeTranscriptSegments(from: fallbackResults, audioDuration: audioDuration)
         }
 
-        DikteLog.action("stt", "transcribe.complete", "\(segments.count) segment, \(String(format: "%.1f", Date().timeIntervalSince(t)))s")
+        DikteLog.action("stt", "transcribe.complete", "Transkripsiyon tamamlandı.", metadata: DikteLog.metadata([
+            "elapsed_s": String(format: "%.2f", Date().timeIntervalSince(t)),
+            "segments": segments.count
+        ], sessionID: sessionID))
         return segments
     }
 
@@ -120,15 +136,24 @@ actor TranscriptionService {
         return Double(file.length) / sampleRate
     }
 
-    private static func logResults(_ results: [TranscriptionResult], event: String) {
+    private static func fileSize(of url: URL) -> Int64 {
+        let attributes = try? FileManager.default.attributesOfItem(atPath: url.path)
+        return (attributes?[.size] as? Int64) ?? 0
+    }
+
+    private static func logResults(_ results: [TranscriptionResult], event: String, sessionID: String?) {
         let rawSegmentCount = results.reduce(0) { $0 + $1.segments.count }
         let textCharacterCount = results.reduce(0) { $0 + cleanTranscriptText($1.text).count }
-        DikteLog.info("stt", event, "\(results.count) sonuç, \(rawSegmentCount) raw segment, \(textCharacterCount) karakter")
+        DikteLog.info("stt", event, "Whisper sonucu alındı.", metadata: DikteLog.metadata([
+            "raw_segments": rawSegmentCount,
+            "results": results.count,
+            "text_chars": textCharacterCount
+        ], sessionID: sessionID))
     }
 
     // MARK: - Model Loading
 
-    private func loadWhisperKit() async throws -> WhisperKit {
+    private func loadWhisperKit(sessionID: String? = nil) async throws -> WhisperKit {
         if let whisperKit {
             return whisperKit
         }
@@ -138,7 +163,7 @@ actor TranscriptionService {
         }
 
         let task = Task {
-            try await Self.makeWhisperKit()
+            try await Self.makeWhisperKit(sessionID: sessionID)
         }
         loadingTask = task
 
@@ -153,12 +178,16 @@ actor TranscriptionService {
         }
     }
 
-    private static func makeWhisperKit() async throws -> WhisperKit {
+    private static func makeWhisperKit(sessionID: String? = nil) async throws -> WhisperKit {
         let modelDir = modelStorageDir
         try FileManager.default.createDirectory(at: modelDir, withIntermediateDirectories: true)
 
         let cachedFolder = cachedModelFolder(in: modelDir)
-        DikteLog.action("stt", "model.load", cachedFolder == nil ? "Model indiriliyor (~954 MB)." : "Model cache'den yükleniyor.")
+        DikteLog.action("stt", "model.load", cachedFolder == nil ? "Model indiriliyor (~954 MB)." : "Model cache'den yükleniyor.", metadata: DikteLog.metadata([
+            "cache_hit": cachedFolder != nil,
+            "model": modelName,
+            "model_dir": modelDir.path
+        ], sessionID: sessionID))
 
         let t = Date()
         let config = WhisperKitConfig(
@@ -172,7 +201,10 @@ actor TranscriptionService {
             download: true
         )
         let kit = try await WhisperKit(config)
-        DikteLog.action("stt", "model.ready", "\(String(format: "%.1f", Date().timeIntervalSince(t)))s")
+        DikteLog.action("stt", "model.ready", "Whisper modeli hazır.", metadata: DikteLog.metadata([
+            "elapsed_s": String(format: "%.2f", Date().timeIntervalSince(t)),
+            "model": modelName
+        ], sessionID: sessionID))
         return kit
     }
 

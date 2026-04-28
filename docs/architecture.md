@@ -96,6 +96,13 @@ Sources/
 - Clipboard references are inserted as Unicode superscript markers.
 - The final output includes an `Attachments` section with numbered file or URL references.
 
+### Logging
+
+- `DikteLog` writes compact terminal/file log lines with time, short level code, `area.event`, message, and sorted `key=value` metadata.
+- A short per-recording session ID is created in `AppState` and passed through audio recording, clipboard monitoring, transcription, merge, and output-copy logs.
+- Logs include diagnostic metadata such as durations, counts, byte sizes, source app names, device identifiers, model/cache state, and audio signal metrics.
+- Logs must not include raw transcript text or copied clipboard text; content is represented by counts, type, source, and persisted artifact metadata.
+
 ### Permissions And Entitlements
 
 - `Resources/Info.plist` declares `NSMicrophoneUsageDescription`.
@@ -119,7 +126,7 @@ make test
 make stop
 ```
 
-`make run` regenerates the Xcode project, builds the Debug app, stops any running Dikte process, launches the built `.app` through LaunchServices, and tails the structured log file.
+`make run` regenerates the Xcode project, builds the Debug app, stops any running Dikte process, launches the built `.app` through LaunchServices, tails the structured log file, and ends the terminal stream when the Dikte process exits.
 
 ## Context System
 
@@ -128,5 +135,7 @@ The repo-resident context system is intentionally separate from the Swift app ru
 - `make context-load` prints bounded startup context.
 - `make context-save SUMMARY=/path/to/session.md TITLE="short-title"` stores a session summary and updates the index.
 - `make context-check` validates the context docs and index.
+
+Session summaries are deliberately coarse-grained: use them for meaningful development blocks or daily summaries, not every runtime recording, log session, or small debugging attempt. Runtime diagnostic IDs and raw logs stay in `~/Library/Logs/Dikte/dikte.log`; committed context keeps distilled facts, decisions, verification, and follow-ups.
 
 Agent-specific hooks may call these commands, but the committed Markdown files remain the durable source of truth.

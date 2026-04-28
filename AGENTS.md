@@ -47,7 +47,9 @@ Before ending meaningful work:
 2. Update `docs/current-state.md`, `docs/tasks.md`, or `docs/decisions.md` when facts, open work, or decisions changed.
 3. Run `make context-check`.
 
-Do not commit raw conversations, secrets, tokens, pasted private data, or full logs into the context docs. Commit context updates together with the related code or documentation change.
+Session summaries are for meaningful development blocks or daily summaries, not every recording, runtime log session, or small debugging attempt. Runtime log session IDs such as `session=d8a84ed8` belong in `~/Library/Logs/Dikte/dikte.log`; committed context should only keep distilled facts, decisions, verification, and follow-ups.
+
+Do not commit raw conversations, secrets, tokens, pasted private data, copied clipboard contents, dictated transcript text, or full logs into the context docs. Commit context updates together with the related code or documentation change.
 
 ## Useful Commands
 

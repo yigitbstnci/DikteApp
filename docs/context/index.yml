@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-04-28-structured-logging-metadata
+    date: "2026-04-28"
+    title: "structured logging metadata"
+    path: docs/context/sessions/2026-04-28-structured-logging-metadata.md
+    status: active
   - id: 2026-04-28-close-active-context-task
     date: "2026-04-28"
     title: "close active context task"
@@ -33,6 +38,8 @@ decisions:
   - DKT-ADR-0002
   - DKT-ADR-0003
   - DKT-ADR-0004
+  - DKT-ADR-0005
+  - DKT-ADR-0006
 tasks:
   active: []
   ongoing:
