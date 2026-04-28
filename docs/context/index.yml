@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-04-28-menu-bar-dropdown-menu
+    date: "2026-04-28"
+    title: "menu-bar-dropdown-menu"
+    path: docs/context/sessions/2026-04-28-menu-bar-dropdown-menu.md
+    status: active
   - id: 2026-04-28-structured-logging-metadata
     date: "2026-04-28"
     title: "structured logging metadata"

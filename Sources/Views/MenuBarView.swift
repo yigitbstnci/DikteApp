@@ -1,141 +1,119 @@
 import SwiftUI
+import AppKit
 
-/// Main popover content shown when the menu bar icon is clicked.
-/// "Fluid Zen" Edition
+/// Native dropdown content shown when the menu bar icon is clicked.
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        VStack(spacing: 24) {
-            // Top Section: Title & Settings
-            HStack {
-                Text("Dikte")
-                    .font(.dzHeading())
-                    .foregroundColor(.dzTextPrimary)
-                
-                Spacer()
-                
-                Button(action: {
-                    let delivered = NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    DikteLog.action("app", "settings.open.request", "Ayarlar penceresi açma isteği alındı.", metadata: [
-                        "delivered": delivered,
-                        "is_processing": appState.isProcessing,
-                        "is_recording": appState.isRecording,
-                        "show_result": appState.showResult
-                    ])
-                }) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.dzTextMuted)
-                }
-                .buttonStyle(.plain)
-                
-                Button(action: {
-                    NSApplication.shared.terminate(nil)
-                }) {
-                    Image(systemName: "power")
-                        .font(.system(size: 14))
-                        .foregroundColor(.dzTextMuted)
-                }
-                .buttonStyle(.plain)
-            }
-            
-            // Center Section: Status Ring
-            statusRing
-            
-            // Bottom Section: Context Info or Toggle
-            contextToggle
-        }
-        .padding(24)
-        .frame(width: 320)
-        // macOS MenuBarExtra window style will frame this, but we apply our custom glass background
-        // Note: MenuBarExtra inherently has some background on macOS, but .window style allows custom backgrounds
-        .glassPanel(radius: 18)
-    }
-    
-    // MARK: - Status Ring
-    
-    private var statusRing: some View {
-        Button(action: {
-            if !appState.isProcessing {
-                appState.toggleRecording()
-            }
-        }) {
-            ZStack {
-                // Background glow/ring
-                Circle()
-                    .fill(Color.dzSurfaceGlass)
-                    .frame(width: 120, height: 120)
-                    .shadow(color: appState.isRecording ? Color.dzPrimary.opacity(0.5) : .clear, radius: 20)
-                
-                if appState.isRecording {
-                    // Fluid Blob for recording
-                    FluidBlobView()
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
-                    
-                    Text(appState.formattedDuration)
-                        .font(.dzHeading())
-                        .foregroundColor(.dzTextPrimary)
-                        .monospacedDigit()
-                } else if appState.isProcessing {
-                    ProgressView()
-                        .controlSize(.regular)
-                } else if appState.showResult {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 40, weight: .semibold))
-                        .foregroundColor(.dzSuccess)
-                } else {
-                    // Idle
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.dzTextMuted)
-                }
-            }
-            .frame(height: 140) // Give it breathing room
-        }
-        .buttonStyle(SquishyButtonStyle())
-    }
-    
-    // MARK: - Context Toggle
-    
-    private var contextToggle: some View {
-        VStack(spacing: 8) {
-            if appState.isRecording {
-                Text("Kayıt devam ediyor...")
-                    .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
-                
-                Text("Panoya bir şeyler kopyalayın")
-                    .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
-            } else if appState.isProcessing {
-                Text("Yerel olarak işleniyor...")
-                    .font(.dzSmallText())
-                    .foregroundColor(.dzTextPrimary)
-            } else if appState.showResult {
-                Text("Panoya Kopyalandı")
-                    .font(.dzButtonText())
-                    .foregroundColor(.dzSuccess)
-            } else {
-                Text("Başlamak için dokun veya ⌘⇧Space")
-                    .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
-            }
-        }
-        .frame(height: 40)
-    }
-}
+        Text("Dikte")
+        Text(statusText)
 
-// Custom button style for the squishy ring click
-struct SquishyButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
+        Divider()
 
-#Preview {
-    MenuBarView()
+        Menu {
+            dictationItems
+        } label: {
+            Label("Kayıt", systemImage: dictationMenuIcon)
+        }
+
+        Menu {
+            clipboardItems
+        } label: {
+            Label("Pano", systemImage: "doc.on.clipboard")
+        }
+
+        Divider()
+
+        Button(action: openSettings) {
+            Label("Ayarlar...", systemImage: "gearshape")
+        }
+
+        Divider()
+
+        Button(action: quit) {
+            Label("Çıkış", systemImage: "power")
+        }
+        .keyboardShortcut("q")
+    }
+
+    @ViewBuilder
+    private var dictationItems: some View {
+        if appState.isProcessing {
+            Label("Yerel olarak işleniyor", systemImage: "hourglass")
+        } else {
+            Button(action: appState.toggleRecording) {
+                Label(recordingActionTitle, systemImage: recordingActionIcon)
+            }
+        }
+
+        if appState.isRecording {
+            Text("Süre: \(appState.formattedDuration)")
+        } else if appState.showResult {
+            Text("Sonuç panoda")
+        } else {
+            Text("Kısayol: ⌘⇧Space")
+        }
+    }
+
+    @ViewBuilder
+    private var clipboardItems: some View {
+        if appState.isRecording {
+            Label("Aktif", systemImage: "checkmark.circle")
+        } else {
+            Label("Pasif", systemImage: "pause.circle")
+        }
+
+        if let currentSession = appState.currentSession {
+            Text("Son oturum: \(currentSession.clipboardItems.count) öğe")
+        } else {
+            Text("Son oturum yok")
+        }
+    }
+
+    private var statusText: String {
+        if appState.isProcessing {
+            return "İşleniyor"
+        }
+
+        if appState.isRecording {
+            return "Kayıt: \(appState.formattedDuration)"
+        }
+
+        if appState.showResult {
+            return "Panoya kopyalandı"
+        }
+
+        return "Hazır"
+    }
+
+    private var dictationMenuIcon: String {
+        if appState.isProcessing {
+            return "hourglass"
+        }
+
+        return appState.isRecording ? "waveform.circle.fill" : "waveform"
+    }
+
+    private var recordingActionTitle: String {
+        appState.isRecording ? "Kaydı Durdur" : "Kayıt Başlat"
+    }
+
+    private var recordingActionIcon: String {
+        appState.isRecording ? "stop.circle" : "mic.circle"
+    }
+
+    private func openSettings() {
+        let delivered = NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        DikteLog.action("app", "settings.open.request", "Ayarlar penceresi açma isteği alındı.", metadata: [
+            "delivered": delivered,
+            "is_processing": appState.isProcessing,
+            "is_recording": appState.isRecording,
+            "show_result": appState.showResult
+        ])
+    }
+
+    private func quit() {
+        NSApplication.shared.terminate(nil)
+    }
 }
