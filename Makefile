@@ -72,9 +72,9 @@ run: stop build
 	while pgrep -x Dikte >/dev/null 2>&1; do \
 		sleep 0.5; \
 	done; \
-	printf "\033[38;5;245m00:00:00.000 INF make.run.stop | %s\033[0m\n" "Dikte kapandı; terminal log stream duruyor."; \
 	kill "$$tail_pid" 2>/dev/null || true; \
-	wait "$$awk_pid" 2>/dev/null || true
+	wait "$$awk_pid" 2>/dev/null || true; \
+	printf "\033[38;5;245m00:00:00.000 INF make.run.stop | %s\033[0m\n" "Dikte kapandı; terminal log stream duruyor."
 
 test: generate
 	@xcodebuild -quiet \
