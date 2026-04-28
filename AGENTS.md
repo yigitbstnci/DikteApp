@@ -31,6 +31,24 @@ Primary workflow:
 - Preserve the local-first privacy model. Do not add network transcription or telemetry without explicit approval.
 - Be careful around microphone permissions, global pasteboard access, sandbox settings, and model download behavior.
 
+## Repo-Resident Context Protocol
+
+This repo keeps agent continuity in committed Markdown files under `docs/`, plus a small structured index at `docs/context/index.yml`. Treat those files as the durable source of truth instead of relying on any one agent's private memory store.
+
+At session start:
+
+1. Read `docs/current-state.md` and `docs/tasks.md`.
+2. Run `make context-load` when deeper continuity is useful.
+3. Use `docs/architecture.md` and `docs/decisions.md` for stable system context and prior decisions.
+
+Before ending meaningful work:
+
+1. Add a concise session summary with `make context-save SUMMARY=/path/to/session.md TITLE="short-title"`.
+2. Update `docs/current-state.md`, `docs/tasks.md`, or `docs/decisions.md` when facts, open work, or decisions changed.
+3. Run `make context-check`.
+
+Do not commit raw conversations, secrets, tokens, pasted private data, or full logs into the context docs. Commit context updates together with the related code or documentation change.
+
 ## Useful Commands
 
 ```bash
@@ -38,6 +56,9 @@ xcodegen generate
 make run
 make test
 make stop
+make context-load
+make context-save SUMMARY=/path/to/session.md TITLE="short-title"
+make context-check
 xcodebuild -list -project Dikte.xcodeproj
 xcodebuild -scheme Dikte -project Dikte.xcodeproj -configuration Debug build
 ```

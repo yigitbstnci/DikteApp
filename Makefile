@@ -8,7 +8,7 @@ APP_PATH_FILE := .build/dikte-app-path
 LOG_DIR := $(HOME)/Library/Logs/Dikte
 LOG_FILE := $(LOG_DIR)/dikte.log
 
-.PHONY: generate build run test stop clean
+.PHONY: generate build run test stop clean context-load context-save context-check
 
 generate:
 	@xcodegen generate
@@ -61,3 +61,13 @@ clean:
 		-scheme "$(SCHEME)" \
 		-configuration "$(CONFIGURATION)" \
 		clean
+
+context-load:
+	@scripts/context/load.sh
+
+context-save:
+	@test -n "$(SUMMARY)" || (echo 'usage: make context-save SUMMARY=/path/to/session.md TITLE="short-title"' >&2; exit 2)
+	@SUMMARY="$(SUMMARY)" TITLE="$(TITLE)" scripts/context/save-session.sh
+
+context-check:
+	@scripts/context/check.sh
