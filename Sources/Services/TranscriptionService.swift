@@ -15,6 +15,9 @@ actor TranscriptionService {
         return appSupport.appendingPathComponent("Dikte/Models", isDirectory: true)
     }()
 
+    private static let normalizedSampleRate: Double = 16000
+    private static let normalizedChannels: AVAudioChannelCount = 1
+
     func preload() async {
         do {
             _ = try await loadWhisperKit()
@@ -25,63 +28,191 @@ actor TranscriptionService {
         }
     }
 
-    func transcribe(audioFileURL: URL, sessionID: String? = nil) async throws -> [TranscriptSegment] {
+    func transcribe(audioFileURL: URL, requiresWordTimestamps: Bool, sessionID: String? = nil) async throws -> [TranscriptSegment] {
         let whisper = try await loadWhisperKit(sessionID: sessionID)
         let audioDuration = Self.audioDuration(of: audioFileURL)
         let byteCount = Self.fileSize(of: audioFileURL)
 
-        let t = Date()
-        DikteLog.action("stt", "transcribe.start", "Whisper transkripsiyonu başladı.", metadata: DikteLog.metadata([
-            "audio_duration_s": String(format: "%.2f", audioDuration),
-            "bytes": byteCount,
-            "file": audioFileURL.lastPathComponent,
-            "language": "tr",
-            "word_timestamps": true
-        ], sessionID: sessionID))
+        let totalStart = Date()
 
-        let results = try await whisper.transcribe(
-            audioPath: audioFileURL.path,
-            decodeOptions: Self.primaryDecodingOptions
-        )
-
-        Self.logResults(results, event: "transcribe.primary", sessionID: sessionID)
-        var segments = Self.makeTranscriptSegments(from: results, audioDuration: audioDuration)
-
-        if segments.isEmpty {
-            DikteLog.warning("stt", "transcribe.retry", "Segment bulunamadı; düz transkripsiyon modunda tekrar deneniyor.", metadata: DikteLog.metadata([
-                "word_timestamps": false
-            ], sessionID: sessionID))
-            let fallbackResults = try await whisper.transcribe(
-                audioPath: audioFileURL.path,
-                decodeOptions: Self.fallbackDecodingOptions
-            )
-            Self.logResults(fallbackResults, event: "transcribe.fallback", sessionID: sessionID)
-            segments = Self.makeTranscriptSegments(from: fallbackResults, audioDuration: audioDuration)
+        let prepStart = Date()
+        let (processedURL, didNormalize, sourceFormat) = Self.prepareAudioForTranscription(audioFileURL)
+        let prepElapsed = Date().timeIntervalSince(prepStart)
+        if didNormalize && processedURL != audioFileURL {
+            defer { try? FileManager.default.removeItem(at: processedURL) }
         }
 
-        DikteLog.action("stt", "transcribe.complete", "Transkripsiyon tamamlandı.", metadata: DikteLog.metadata([
-            "elapsed_s": String(format: "%.2f", Date().timeIntervalSince(t)),
-            "segments": segments.count
-        ], sessionID: sessionID))
-        return segments
-    }
-
-    private static var primaryDecodingOptions: DecodingOptions {
-        DecodingOptions(
+        let primaryOptions = DecodingOptions(
             language: "tr",
-            wordTimestamps: true,
+            wordTimestamps: requiresWordTimestamps,
             suppressBlank: false
         )
-    }
 
-    private static var fallbackDecodingOptions: DecodingOptions {
-        DecodingOptions(
+        let fallbackOptions = DecodingOptions(
             language: "tr",
             wordTimestamps: false,
             suppressBlank: false,
             firstTokenLogProbThreshold: nil,
             noSpeechThreshold: nil
         )
+
+        DikteLog.action("stt", "transcribe.start", "Whisper transkripsiyonu başladı.", metadata: DikteLog.metadata([
+            "audio_duration_s": String(format: "%.2f", audioDuration),
+            "bytes": byteCount,
+            "file": audioFileURL.lastPathComponent,
+            "language": "tr",
+            "word_timestamps": requiresWordTimestamps,
+            "audio_normalized": didNormalize,
+            "source_sample_rate_hz": Int(sourceFormat.sampleRate),
+            "source_channels": sourceFormat.channelCount,
+            "normalized_sample_rate_hz": Self.normalizedSampleRate,
+            "normalized_channels": Self.normalizedChannels,
+            "prep_elapsed_s": String(format: "%.3f", prepElapsed)
+        ], sessionID: sessionID))
+
+        let primaryStart = Date()
+        let results = try await whisper.transcribe(
+            audioPath: processedURL.path,
+            decodeOptions: primaryOptions
+        )
+        let primaryElapsed = Date().timeIntervalSince(primaryStart)
+
+        Self.logResults(results, event: "transcribe.primary", sessionID: sessionID, elapsed: primaryElapsed, wordTimestamps: requiresWordTimestamps)
+        var segments = Self.makeTranscriptSegments(from: results, audioDuration: audioDuration)
+
+        var fallbackElapsed: TimeInterval = 0
+
+        if segments.isEmpty {
+            DikteLog.warning("stt", "transcribe.retry", "Segment bulunamadı; düz transkripsiyon modunda tekrar deneniyor.", metadata: DikteLog.metadata([
+                "word_timestamps": false
+            ], sessionID: sessionID))
+
+            let fbStart = Date()
+            let fallbackResults = try await whisper.transcribe(
+                audioPath: processedURL.path,
+                decodeOptions: fallbackOptions
+            )
+            fallbackElapsed = Date().timeIntervalSince(fbStart)
+
+            Self.logResults(fallbackResults, event: "transcribe.fallback", sessionID: sessionID, elapsed: fallbackElapsed, wordTimestamps: false)
+            segments = Self.makeTranscriptSegments(from: fallbackResults, audioDuration: audioDuration)
+        }
+
+        let totalElapsed = Date().timeIntervalSince(totalStart)
+        let decodeElapsed = primaryElapsed + fallbackElapsed
+        let rtf = audioDuration > 0 ? decodeElapsed / audioDuration : 0
+
+        DikteLog.action("stt", "transcribe.complete", "Transkripsiyon tamamlandı.", metadata: DikteLog.metadata([
+            "total_elapsed_s": String(format: "%.2f", totalElapsed),
+            "decode_elapsed_s": String(format: "%.2f", decodeElapsed),
+            "primary_elapsed_s": String(format: "%.2f", primaryElapsed),
+            "model_wait_elapsed_s": String(format: "%.2f", totalElapsed - decodeElapsed),
+            "fallback_elapsed_s": String(format: "%.2f", fallbackElapsed),
+            "audio_normalized": didNormalize,
+            "rtf": String(format: "%.2f", rtf),
+            "segments": segments.count
+        ], sessionID: sessionID))
+
+        return segments
+    }
+
+    static func prepareAudioForTranscription(_ url: URL) -> (URL, Bool, AVAudioFormat) {
+        guard let sourceFile = try? AVAudioFile(forReading: url) else {
+            return (url, false, AVAudioFormat())
+        }
+
+        let sourceFormat = sourceFile.processingFormat
+        let needsConversion = sourceFormat.sampleRate != normalizedSampleRate || sourceFormat.channelCount != normalizedChannels
+
+        if !needsConversion {
+            return (url, false, sourceFormat)
+        }
+
+        guard let normalizedURL = try? normalizeAudio(to: url, targetSampleRate: normalizedSampleRate, targetChannels: normalizedChannels) else {
+            return (url, false, sourceFormat)
+        }
+
+        return (normalizedURL, true, sourceFormat)
+    }
+
+    private static func normalizeAudio(to sourceURL: URL, targetSampleRate: Double, targetChannels: AVAudioChannelCount) throws -> URL {
+        let sourceFile = try AVAudioFile(forReading: sourceURL)
+        let sourceFormat = sourceFile.processingFormat
+
+        guard let targetFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: targetSampleRate,
+            channels: targetChannels,
+            interleaved: false
+        ) else {
+            throw TranscriptionError.converterCreationFailed
+        }
+
+        guard let converter = AVAudioConverter(from: sourceFormat, to: targetFormat) else {
+            throw TranscriptionError.converterCreationFailed
+        }
+
+        let outputFileName = "dikte_normalized_\(UUID().uuidString).wav"
+        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(outputFileName)
+
+        guard let outputFile = try? AVAudioFile(
+            forWriting: outputURL,
+            settings: [
+                AVFormatIDKey: kAudioFormatLinearPCM,
+                AVSampleRateKey: targetSampleRate,
+                AVNumberOfChannelsKey: targetChannels,
+                AVLinearPCMBitDepthKey: 32,
+                AVLinearPCMIsFloatKey: true,
+                AVLinearPCMIsBigEndianKey: false,
+                AVLinearPCMIsNonInterleaved: false
+            ],
+            commonFormat: .pcmFormatFloat32,
+            interleaved: false
+        ) else {
+            throw TranscriptionError.bufferAllocationFailed
+        }
+
+        let sourceFrameCount = AVAudioFrameCount(sourceFile.length)
+        let frameCount = AVAudioFrameCount(Double(sourceFile.length) / sourceFormat.sampleRate * targetSampleRate)
+
+        guard let inputBuffer = AVAudioPCMBuffer(pcmFormat: sourceFormat, frameCapacity: sourceFrameCount),
+              let outputBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: frameCount) else {
+            throw TranscriptionError.bufferAllocationFailed
+        }
+
+        try sourceFile.read(into: inputBuffer)
+
+        var error: NSError?
+        var inputPresented = false
+        let status = converter.convert(to: outputBuffer, error: &error) { _, outStatus in
+            if inputPresented {
+                outStatus.pointee = .noDataNow
+                return nil
+            }
+            outStatus.pointee = .haveData
+            inputPresented = true
+            return inputBuffer
+        }
+
+        if status == .error || error != nil {
+            throw error ?? TranscriptionError.conversionFailed
+        }
+
+        try outputFile.write(from: outputBuffer)
+
+        return outputURL
+    }
+
+    private static func logResults(_ results: [TranscriptionResult], event: String, sessionID: String?, elapsed: TimeInterval, wordTimestamps: Bool) {
+        let rawSegmentCount = results.reduce(0) { $0 + $1.segments.count }
+        let textCharacterCount = results.reduce(0) { $0 + cleanTranscriptText($1.text).count }
+        DikteLog.info("stt", event, "Whisper sonucu alındı.", metadata: DikteLog.metadata([
+            "raw_segments": rawSegmentCount,
+            "results": results.count,
+            "text_chars": textCharacterCount,
+            "decode_elapsed_s": String(format: "%.2f", elapsed),
+            "word_timestamps": wordTimestamps
+        ], sessionID: sessionID))
     }
 
     private static func makeTranscriptSegments(
@@ -139,16 +270,6 @@ actor TranscriptionService {
     private static func fileSize(of url: URL) -> Int64 {
         let attributes = try? FileManager.default.attributesOfItem(atPath: url.path)
         return (attributes?[.size] as? Int64) ?? 0
-    }
-
-    private static func logResults(_ results: [TranscriptionResult], event: String, sessionID: String?) {
-        let rawSegmentCount = results.reduce(0) { $0 + $1.segments.count }
-        let textCharacterCount = results.reduce(0) { $0 + cleanTranscriptText($1.text).count }
-        DikteLog.info("stt", event, "Whisper sonucu alındı.", metadata: DikteLog.metadata([
-            "raw_segments": rawSegmentCount,
-            "results": results.count,
-            "text_chars": textCharacterCount
-        ], sessionID: sessionID))
     }
 
     // MARK: - Model Loading
@@ -233,7 +354,8 @@ actor TranscriptionService {
     // MARK: - Text Cleaning
 
     static func cleanTranscriptText(_ text: String) -> String {
-        var cleaned = text
+        var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty else { return cleaned }
 
         if let regex = try? NSRegularExpression(pattern: #"<\|[^|]*\|>"#) {
             cleaned = regex.stringByReplacingMatches(
@@ -243,14 +365,7 @@ actor TranscriptionService {
             )
         }
 
-        let hallucinations = [
-            "Altyazı M.K.", "Altyazılar M.K.", "Alt yazı M.K.",
-            "Altyazı:", "Çeviri:", "Altyazı çeviri",
-            "www.", ".com", "Abone ol", "Beğen",
-        ]
-        for h in hallucinations {
-            cleaned = cleaned.replacingOccurrences(of: h, with: "")
-        }
+        cleaned = Self.removeTrailingHallucinations(cleaned)
 
         if let regex = try? NSRegularExpression(pattern: #"\s+"#) {
             cleaned = regex.stringByReplacingMatches(
@@ -261,5 +376,67 @@ actor TranscriptionService {
         }
 
         return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func removeTrailingHallucinations(_ text: String) -> String {
+        let trailingHallucinations = [
+            "altyazı m.k.", "altyazılar m.k.", "alt yazı m.k.",
+            "altyazı:", "çeviri:", "altyazı çeviri",
+            "abone ol", "beğen",
+            "www.", ".com",
+        ]
+
+        let result = text
+
+        for hallucination in trailingHallucinations {
+            if result.lowercased() == hallucination {
+                return ""
+            }
+
+            let suffixPatterns = [
+                " \(hallucination)",
+                ".\(hallucination)",
+                ",\(hallucination)",
+                "!\(hallucination)",
+                "?\(hallucination)",
+            ]
+
+            for pattern in suffixPatterns {
+                if result.lowercased().hasSuffix(pattern) {
+                    let prefixEnd = result.count - pattern.count
+                    let prefix = String(result.prefix(prefixEnd)).trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !prefix.isEmpty {
+                        return prefix
+                    }
+                }
+            }
+
+            if result.lowercased().hasSuffix(hallucination) {
+                let prefixEnd = result.count - hallucination.count
+                let prefix = String(result.prefix(prefixEnd)).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !prefix.isEmpty {
+                    return prefix
+                }
+            }
+        }
+
+        return result
+    }
+}
+
+private enum TranscriptionError: LocalizedError {
+    case converterCreationFailed
+    case bufferAllocationFailed
+    case conversionFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .converterCreationFailed:
+            return "Audio converter oluşturulamadı."
+        case .bufferAllocationFailed:
+            return "Audio buffer ayrılamadı."
+        case .conversionFailed:
+            return "Audio dönüşümü başarısız."
+        }
     }
 }

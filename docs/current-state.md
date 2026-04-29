@@ -1,6 +1,6 @@
 # Dikte Current State
 
-Last updated: 2026-04-28
+Last updated: 2026-04-29
 
 ## Snapshot
 
@@ -16,6 +16,9 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.
 - Unit tests currently cover merge behavior, output formatting, clipboard item formatting, terminal text confirmation helpers, transcript cleanup, cached model folder detection, and log line formatting.
+- Transcription uses dynamic word timestamps: when clipboard items exist, `wordTimestamps: true`; otherwise `wordTimestamps: false`.
+- Enhanced transcription logging includes: `total_elapsed_s`, `decode_elapsed_s`, `primary_elapsed_s`, `fallback_elapsed_s`, `model_wait_elapsed_s`, `rtf` (real-time factor).
+- Audio normalization to 16kHz mono is now implemented in TranscriptionService.
 
 ## Known Gaps
 

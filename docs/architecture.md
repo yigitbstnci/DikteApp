@@ -85,9 +85,11 @@ Sources/
 
 - `TranscriptionService` uses WhisperKit with `openai_whisper-large-v3_turbo`.
 - Models are cached under `~/Library/Application Support/Dikte/Models`.
-- The primary decode path uses Turkish (`language: "tr"`) with word timestamps enabled.
+- Audio is normalized to 16kHz mono before transcription using `AVAudioConverter`; normalization is skipped if audio is already compatible.
+- The primary decode path uses Turkish (`language: "tr"`) with word timestamps enabled when clipboard items are present.
 - If no usable segments are returned, transcription retries in fallback mode without word timestamps.
 - Transcript cleanup removes Whisper special tokens and known recurring hallucination phrases before merging.
+- Hallucination cleanup is context-aware: only trailing hallucinations are removed, not mid-sentence occurrences.
 
 ### Merge Output
 

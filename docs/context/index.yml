@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-04-29-transcription-speed-optimization
+    date: "2026-04-29"
+    title: "transcription speed optimization"
+    path: docs/context/sessions/2026-04-29-transcription-speed-optimization.md
+    status: active
   - id: 2026-04-29-review-fix-context-index-terminal-tests
     date: "2026-04-29"
     title: "review fix context index terminal tests"
@@ -60,3 +65,4 @@ tasks:
     - DKT-TASK-0007
   completed:
     - DKT-TASK-0004
+    - DKT-TASK-0008

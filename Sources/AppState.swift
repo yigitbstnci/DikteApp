@@ -165,8 +165,10 @@ final class AppState {
         Task {
             do {
                 // 1. Transcribe audio
+                let requiresWordTimestamps = !clipboardItems.isEmpty
                 let segments = try await transcriptionService.transcribe(
                     audioFileURL: audioURL,
+                    requiresWordTimestamps: requiresWordTimestamps,
                     sessionID: sessionID
                 )
 
@@ -181,6 +183,7 @@ final class AppState {
                     "clipboard_items": clipboardItems.count,
                     "output_chars": merged.count,
                     "segments": segments.count,
+                    "word_timestamps": requiresWordTimestamps,
                     "session": sessionID
                 ])
 
