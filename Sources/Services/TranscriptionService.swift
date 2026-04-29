@@ -232,7 +232,7 @@ actor TranscriptionService {
 
     // MARK: - Text Cleaning
 
-    private static func cleanTranscriptText(_ text: String) -> String {
+    static func cleanTranscriptText(_ text: String) -> String {
         var cleaned = text
 
         if let regex = try? NSRegularExpression(pattern: #"<\|[^|]*\|>"#) {

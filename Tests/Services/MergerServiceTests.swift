@@ -133,6 +133,112 @@ final class MergerServiceTests: XCTestCase {
         )
     }
 
+    func testMergeHandlesMultipleClipboardItemsAtSameTimestamp() {
+        let segments = [
+            segment("Test.", start: 0, end: 1)
+        ]
+        let item1 = clipboardItem(
+            type: .text,
+            timestamp: recordingStart.addingTimeInterval(0.5),
+            textContent: "first",
+            path: "/tmp/first.txt",
+            sourceApp: "App1",
+            fileSize: 5
+        )
+        let item2 = clipboardItem(
+            type: .image,
+            timestamp: recordingStart.addingTimeInterval(0.5),
+            textContent: nil,
+            path: "/tmp/second.png",
+            sourceApp: "App2",
+            fileSize: 100
+        )
+
+        let output = service.merge(
+            transcriptSegments: segments,
+            clipboardItems: [item1, item2],
+            recordingStartTime: recordingStart
+        )
+
+        XCTAssertTrue(output.contains("¹"))
+        XCTAssertTrue(output.contains("²"))
+        XCTAssertTrue(output.contains("/tmp/first.txt"))
+        XCTAssertTrue(output.contains("/tmp/second.png"))
+    }
+
+    func testMergePlacesAnnotationsAtSegmentBoundaries() {
+        let segments = [
+            segment("Start end.", start: 0, end: 2)
+        ]
+        let itemAtStart = clipboardItem(
+            type: .text,
+            timestamp: recordingStart.addingTimeInterval(0.0),
+            textContent: "at start",
+            path: "/tmp/start.txt",
+            sourceApp: "App",
+            fileSize: 10
+        )
+        let itemAtEnd = clipboardItem(
+            type: .text,
+            timestamp: recordingStart.addingTimeInterval(2.0),
+            textContent: "at end",
+            path: "/tmp/end.txt",
+            sourceApp: "App",
+            fileSize: 10
+        )
+
+        let output = service.merge(
+            transcriptSegments: segments,
+            clipboardItems: [itemAtStart, itemAtEnd],
+            recordingStartTime: recordingStart
+        )
+
+        XCTAssertTrue(output.contains("¹"))
+        XCTAssertTrue(output.contains("²"))
+    }
+
+    func testMergeHandlesUnsortedClipboardItems() {
+        let segments = [
+            segment("Ordered.", start: 0, end: 2)
+        ]
+        let unsortedItems = [
+            clipboardItem(
+                type: .image,
+                timestamp: recordingStart.addingTimeInterval(5),
+                textContent: nil,
+                path: "/tmp/third.png",
+                sourceApp: "App",
+                fileSize: 300
+            ),
+            clipboardItem(
+                type: .text,
+                timestamp: recordingStart.addingTimeInterval(1),
+                textContent: "second",
+                path: "/tmp/second.txt",
+                sourceApp: "App",
+                fileSize: 10
+            ),
+            clipboardItem(
+                type: .url,
+                timestamp: recordingStart.addingTimeInterval(0.5),
+                textContent: "https://first.com",
+                path: nil,
+                sourceApp: "App",
+                fileSize: 20
+            )
+        ]
+
+        let output = service.merge(
+            transcriptSegments: segments,
+            clipboardItems: unsortedItems,
+            recordingStartTime: recordingStart
+        )
+
+        XCTAssertTrue(output.contains("https://first.com"))
+        XCTAssertTrue(output.contains("second"))
+        XCTAssertTrue(output.contains("third.png"))
+    }
+
     private func segment(_ text: String, start: TimeInterval, end: TimeInterval) -> TranscriptSegment {
         TranscriptSegment(
             id: UUID(),
