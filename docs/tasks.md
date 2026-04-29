@@ -17,6 +17,18 @@ No active tasks are currently recorded.
 
 ## Backlog
 
+### DKT-TASK-0009: Evaluate `faster-whisper` As A Separate Transcription Path
+
+- Status: Backlog
+- Goal: Run a low-urgency spike to evaluate whether the current transcription path can be mirrored with `faster-whisper` for better throughput without destabilizing the working app flow.
+- Constraints:
+  - Do not replace or regress the current production path while testing.
+  - Keep the existing transcription flow available as the default behavior until the experiment proves itself.
+- Notes:
+  - Reference: https://github.com/SYSTRAN/faster-whisper
+  - The experiment should compare the current path against a `faster-whisper`-based structure and focus first on transcription speed, integration cost, and output quality.
+  - No rush; treat this as a background evaluation task, not an immediate migration.
+
 ### DKT-TASK-0008: Audio Optimization and Transcription Speed
 
 - Status: Completed
