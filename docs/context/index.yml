@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-04-29"
+updated_at: "2026-04-30"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-04-30-hud-model-readiness-on-launch
+    date: "2026-04-30"
+    title: "HUD model readiness on launch"
+    path: docs/context/sessions/2026-04-30-hud-model-readiness-on-launch.md
+    status: active
   - id: 2026-04-29-transcription-speed-optimization
     date: "2026-04-29"
     title: "transcription speed optimization"
@@ -63,6 +68,7 @@ tasks:
   backlog:
     - DKT-TASK-0006
     - DKT-TASK-0007
+    - DKT-TASK-0009
   completed:
     - DKT-TASK-0004
     - DKT-TASK-0008

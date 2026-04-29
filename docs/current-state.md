@@ -1,6 +1,6 @@
 # Dikte Current State
 
-Last updated: 2026-04-29
+Last updated: 2026-04-30
 
 ## Snapshot
 
@@ -19,11 +19,12 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Transcription uses dynamic word timestamps: when clipboard items exist, `wordTimestamps: true`; otherwise `wordTimestamps: false`.
 - Enhanced transcription logging includes: `total_elapsed_s`, `decode_elapsed_s`, `primary_elapsed_s`, `fallback_elapsed_s`, `model_wait_elapsed_s`, `rtf` (real-time factor).
 - Audio normalization to 16kHz mono is now implemented in TranscriptionService.
+- HUD model readiness: floating HUD shows model preparation state (preparing/ready/failed) on app launch; `Model Ready` card appears when idle.
 
 ## Known Gaps
 
 - Settings UI still contains placeholder `.constant(...)` bindings for several options.
-- `OnboardingView` exists but is not wired into first-launch or model-download flow.
+- HUD shows model readiness on launch; `OnboardingView` is wired to `AppState.modelReadyState` but its standalone first-launch window flow is not yet implemented.
 - Test coverage is still narrow around app lifecycle, live audio routing, pasteboard integration, and UI behavior.
 - Documentation must stay aligned with implementation details such as polling interval, decode options, and model name.
 
@@ -32,7 +33,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Repo-resident context docs live under `docs/`.
 - The maintained architecture reference is `docs/architecture.md`; the old root-level `PROJECT_DETAIL.md` reference has been removed.
 - `docs/context/index.yml` is the structured context index.
-- `make context-load` prints bounded agent startup context.
+- `make context-load` prints bounded agent startup context and defaults to the latest two session summaries.
 - `make context-save` creates a session summary and updates the index.
 - Context session summaries are reserved for meaningful development blocks or daily summaries; runtime log sessions and raw log dumps stay out of committed context.
 - `make context-check` validates the context surface.

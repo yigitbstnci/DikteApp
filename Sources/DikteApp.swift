@@ -43,6 +43,22 @@ struct DikteApp: App {
                 FloatingHUDManager.shared.hideHUD()
             }
         }
+        .onChange(of: appState.modelReadyState) { oldState, newState in
+            switch newState {
+            case .preparing:
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            case .ready:
+                // Auto hide after 5 seconds if nothing else is happening
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    if !appState.isRecording && !appState.isProcessing && !appState.showResult {
+                        FloatingHUDManager.shared.hideHUD()
+                    }
+                }
+            case .failed:
+                // Keep HUD visible so user sees the error
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            }
+        }
 
         // Settings window for keyboard shortcut configuration
         Settings {

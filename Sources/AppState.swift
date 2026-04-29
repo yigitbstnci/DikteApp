@@ -32,6 +32,14 @@ final class AppState {
     var mergedOutput: String = ""
     var showResult = false
 
+    // MARK: Model readiness
+    enum ModelReadyState: Equatable {
+        case preparing
+        case ready
+        case failed(String)
+    }
+    var modelReadyState: ModelReadyState = .preparing
+
     // MARK: Services
     let audioRecorder = AudioRecorderService()
     let clipboardMonitor = ClipboardMonitorService()
@@ -55,8 +63,18 @@ final class AppState {
         // Pre-load the Whisper model in the background so first recording is fast.
         // XCTest launches the app target as a test host; avoid model downloads there.
         if !Self.isRunningTests {
+            FloatingHUDManager.shared.showHUD(appState: self)
             Task {
-                await transcriptionService.preload()
+                do {
+                    try await transcriptionService.preload()
+                    await MainActor.run {
+                        self.modelReadyState = .ready
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.modelReadyState = .failed(error.localizedDescription)
+                    }
+                }
             }
         }
     }

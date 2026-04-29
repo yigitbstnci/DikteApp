@@ -18,14 +18,8 @@ actor TranscriptionService {
     private static let normalizedSampleRate: Double = 16000
     private static let normalizedChannels: AVAudioChannelCount = 1
 
-    func preload() async {
-        do {
-            _ = try await loadWhisperKit()
-        } catch {
-            DikteLog.error("stt", "model.preload", "Model yüklenemedi: \(error.localizedDescription)", metadata: [
-                "model": Self.modelName
-            ])
-        }
+    func preload() async throws {
+        _ = try await loadWhisperKit()
     }
 
     func transcribe(audioFileURL: URL, requiresWordTimestamps: Bool, sessionID: String? = nil) async throws -> [TranscriptSegment] {
