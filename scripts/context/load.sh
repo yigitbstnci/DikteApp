@@ -5,7 +5,7 @@ script_dir="${0:A:h}"
 repo_root="${script_dir:h:h}"
 index_file="$repo_root/docs/context/index.yml"
 max_lines="${CONTEXT_MAX_LINES_PER_FILE:-160}"
-session_limit="${CONTEXT_SESSION_LIMIT:-3}"
+session_limit="${CONTEXT_SESSION_LIMIT:-2}"
 
 print_file() {
   local title="$1"
