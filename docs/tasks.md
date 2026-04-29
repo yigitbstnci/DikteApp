@@ -1,21 +1,8 @@
 # Dikte Tasks
 
-This file tracks active work and follow-ups that should survive across agent sessions.
+This file tracks active work and follow-ups that survive across agent sessions.
 
-## Active
-
-No active tasks are currently recorded.
-
-## Ongoing
-
-### DKT-TASK-0001: Keep Repo Context System Healthy
-
-- Status: Ongoing
-- Owner: Any coding agent working in this repo
-- Goal: Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and `docs/context/index.yml` aligned with meaningful project changes.
-- Acceptance: `make context-check` passes and `make context-load` gives a useful bounded startup context.
-
-## Test Development Rule
+## Test Development Guidelines
 
 When implementing new functionality that requires tests:
 
@@ -34,6 +21,19 @@ When implementing new functionality that requires tests:
    - NOT require microphone permissions
    - NOT require GUI/app launch
    - Be runnable via `make test`
+
+## Active
+
+No active tasks are currently recorded.
+
+## Ongoing
+
+### DKT-TASK-0001: Keep Repo Context System Healthy
+
+- Status: Ongoing
+- Owner: Any coding agent working in this repo
+- Goal: Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and `docs/context/index.yml` aligned with meaningful project changes.
+- Acceptance: `make context-check` passes and `make context-load` gives a useful bounded startup context.
 
 ## Backlog
 
