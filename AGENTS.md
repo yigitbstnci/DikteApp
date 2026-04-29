@@ -119,3 +119,8 @@ Whisper models are cached under:
 - `OnboardingView` exists but is not wired into the app launch/model download flow.
 - Build/test coverage is minimal unless a test target has been added.
 - Keep documentation aligned with implementation details such as polling interval, decode options, and model name.
+
+## Development Rules
+
+### Test Coverage Rule
+Feature değişikliği test etkisi açısından değerlendirilmeli; test gerekiyorsa `docs/tasks.md` içinde somut task açılmalı. Test yazılacak genel kural değil; "X feature için Y testleri eklenecek" gibi somut task'lar açılmalı.

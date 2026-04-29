@@ -2,26 +2,6 @@
 
 This file tracks active work and follow-ups that survive across agent sessions.
 
-## Test Development Guidelines
-
-When implementing new functionality that requires tests:
-
-1. Add a test task to this file under Backlog with:
-   - Status: Backlog
-   - Goal: Clear description of what needs testing
-   - Notes: Any constraints (no network, no microphone, etc.)
-
-2. Implement tests in the appropriate test file:
-   - `Tests/Services/` for service layer tests
-   - `Tests/Models/` for model/unit tests
-   - `Tests/Integration/` for multi-component tests
-
-3. All tests must:
-   - NOT download Whisper models
-   - NOT require microphone permissions
-   - NOT require GUI/app launch
-   - Be runnable via `make test`
-
 ## Active
 
 No active tasks are currently recorded.

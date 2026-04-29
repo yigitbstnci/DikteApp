@@ -49,3 +49,14 @@ This file records durable architecture and workflow decisions. Use short ADR-sty
 - Decision: `docs/context/sessions/` entries should represent meaningful development blocks or daily summaries, not every runtime recording, log session, or small debugging attempt.
 - Rationale: Context should preserve durable engineering continuity without growing into a token-heavy chronological log.
 - Consequences: Prefer updating `docs/current-state.md`, `docs/tasks.md`, or an existing same-day summary for small follow-ups. Create a new session summary only when it captures a coherent change set, decision, verification result, or follow-up plan.
+
+## DKT-ADR-0007: Feature Work Must Track Test Coverage
+
+- Date: 2026-04-29
+- Status: Accepted
+- Context: Test coverage should be tracked systematically to ensure new features don't break existing functionality.
+- Decision: Every feature change must be evaluated for test impact; if tests are needed, a concrete test task must be added to `docs/tasks.md`.
+- Consequences:
+  - "Test yazılacak" is not a general rule; instead, concrete tasks like "X feature için Y testleri eklenecek" must be created
+  - `make test` should always pass
+  - Tests must not download Whisper models, require microphone permissions, or require GUI/app launch
