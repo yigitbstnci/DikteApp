@@ -32,14 +32,13 @@ struct DikteApp: App {
         }
         .onChange(of: appState.showResult) { _, showResult in
             if showResult {
-                // Auto hide HUD after 3 seconds when result is shown
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                     appState.showResult = false
-                    if !appState.isRecording && !appState.isProcessing {
+                    if !appState.isRecording && !appState.isProcessing && appState.processingError == nil {
                         FloatingHUDManager.shared.hideHUD()
                     }
                 }
-            } else if !appState.isRecording && !appState.isProcessing {
+            } else if !appState.isRecording && !appState.isProcessing && appState.processingError == nil {
                 FloatingHUDManager.shared.hideHUD()
             }
         }
@@ -48,14 +47,17 @@ struct DikteApp: App {
             case .preparing:
                 FloatingHUDManager.shared.showHUD(appState: appState)
             case .ready:
-                // Auto hide after 5 seconds if nothing else is happening
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    if !appState.isRecording && !appState.isProcessing && !appState.showResult {
+                    if !appState.isRecording && !appState.isProcessing && !appState.showResult && appState.processingError == nil {
                         FloatingHUDManager.shared.hideHUD()
                     }
                 }
             case .failed:
-                // Keep HUD visible so user sees the error
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            }
+        }
+        .onChange(of: appState.processingError) { oldError, newError in
+            if newError != nil {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }
         }

@@ -26,6 +26,7 @@ final class AppState {
     // MARK: Processing state
     var isProcessing = false
     var processingStatus: String = ""
+    var processingError: String?
 
     // MARK: Results
     var currentSession: RecordingSession?
@@ -101,6 +102,7 @@ final class AppState {
         // Reset state
         mergedOutput = ""
         showResult = false
+        processingError = nil
         currentSession = nil
         recordingDuration = 0
 
@@ -233,6 +235,7 @@ final class AppState {
                 await MainActor.run {
                     self.isProcessing = false
                     self.processingStatus = "Hata: \(error.localizedDescription)"
+                    self.processingError = error.localizedDescription
                     self.activeRecordingID = nil
                     DikteLog.error("app", "processing.failed", error.localizedDescription, metadata: [
                         "elapsed_s": Self.formatSeconds(Date().timeIntervalSince(processingStartTime)),

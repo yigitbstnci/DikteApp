@@ -32,9 +32,6 @@ actor TranscriptionService {
         let prepStart = Date()
         let (processedURL, didNormalize, sourceFormat) = Self.prepareAudioForTranscription(audioFileURL)
         let prepElapsed = Date().timeIntervalSince(prepStart)
-        if didNormalize && processedURL != audioFileURL {
-            defer { try? FileManager.default.removeItem(at: processedURL) }
-        }
 
         let primaryOptions = DecodingOptions(
             language: "tr",
@@ -90,6 +87,10 @@ actor TranscriptionService {
 
             Self.logResults(fallbackResults, event: "transcribe.fallback", sessionID: sessionID, elapsed: fallbackElapsed, wordTimestamps: false)
             segments = Self.makeTranscriptSegments(from: fallbackResults, audioDuration: audioDuration)
+        }
+
+        if didNormalize && processedURL != audioFileURL {
+            try? FileManager.default.removeItem(at: processedURL)
         }
 
         let totalElapsed = Date().timeIntervalSince(totalStart)

@@ -5,7 +5,16 @@ struct FloatingHUDView: View {
     
     var body: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            if appState.isRecording || appState.isProcessing || appState.showResult {
+            if appState.isRecording {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.isProcessing {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.showResult {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.processingError != nil {
                 mainCard
                     .transition(.move(edge: .top).combined(with: .opacity))
             } else {
@@ -26,10 +35,11 @@ struct FloatingHUDView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.isRecording)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.isProcessing)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.showResult)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.processingError)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.clipboardMonitor.items.count)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.modelReadyState)
     }
-    
+
     private var mainCard: some View {
         HStack(spacing: 12) {
             if appState.isRecording {
@@ -76,6 +86,19 @@ struct FloatingHUDView: View {
                 Text("✓ Saved ➝ ✓ Transcribed ➝ ⌘V to paste")
                     .font(.dzSmallText())
                     .foregroundColor(.dzSuccess)
+                Spacer()
+            } else if let errorMessage = appState.processingError {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Kayıt işlenemedi")
+                        .font(.dzSmallText())
+                        .foregroundColor(.red)
+                    Text(errorMessage)
+                        .font(.system(size: 10, weight: .regular, design: .rounded))
+                        .foregroundColor(.dzTextMuted)
+                        .lineLimit(1)
+                }
                 Spacer()
             }
         }
