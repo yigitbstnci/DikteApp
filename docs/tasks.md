@@ -34,9 +34,9 @@ No active tasks are currently recorded.
 - Status: Completed
 - Goal: Add focused tests around clipboard capture rules, transcript cleanup, audio route behavior, and output formatting.
 - Notes: Avoid tests that download Whisper models or require live microphone permissions.
-- Implementation: 24 new tests across 5 test files
+- Implementation: 46 test additions across 5 test files
   - `Tests/Models/ClipboardItemTests.swift`: 13 tests (file size, attachment path/line)
-  - `Tests/Services/PendingTerminalTextTests.swift`: 10 tests (terminal confirmation logic)
+  - `Tests/Services/PendingTerminalTextTests.swift`: 13 tests (terminal confirmation logic)
   - `Tests/Integration/OutputFormatTests.swift`: 10 tests (output format validation)
   - `Tests/Services/MergerServiceTests.swift`: +3 tests (edge cases)
   - `Tests/Services/TranscriptionServiceTests.swift`: +7 tests (text cleaning)

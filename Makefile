@@ -8,7 +8,7 @@ APP_PATH_FILE := .build/dikte-app-path
 LOG_DIR := $(HOME)/Library/Logs/Dikte
 LOG_FILE := $(LOG_DIR)/dikte.log
 
-.PHONY: generate build run test stop clean context-load context-save context-check
+.PHONY: generate build run test stop clean verify context-load context-save context-check
 
 generate:
 	@xcodegen generate
@@ -82,6 +82,8 @@ test: generate
 		-scheme "$(SCHEME)" \
 		-destination "$(DESTINATION)" \
 		test
+
+verify: context-check test
 
 stop:
 	@pkill -x Dikte 2>/dev/null || true

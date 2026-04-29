@@ -107,7 +107,7 @@ final class ClipboardMonitorService {
             let isURL = string.hasPrefix("http://") || string.hasPrefix("https://")
             var captureEvent = isURL ? "capture.url" : "capture.text"
 
-            if shouldConfirmTerminalText(sourceApp: sourceApp) {
+            if TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: sourceApp) {
                 guard let confirmedEvent = confirmOrStoreTerminalText(
                     string,
                     isURL: isURL,
@@ -134,19 +134,6 @@ final class ClipboardMonitorService {
         }
     }
 
-    private func shouldConfirmTerminalText(sourceApp: String?) -> Bool {
-        guard let normalized = sourceApp?.lowercased() else { return false }
-        return [
-            "ghostty",
-            "terminal",
-            "iterm",
-            "warp",
-            "kitty",
-            "wezterm",
-            "alacritty",
-        ].contains { normalized.contains($0) }
-    }
-
     private func confirmOrStoreTerminalText(
         _ content: String,
         isURL: Bool,
@@ -154,8 +141,12 @@ final class ClipboardMonitorService {
         sourceApp: String?
     ) -> String? {
         if let pendingTerminalText,
-           pendingTerminalText.matches(content: content, isURL: isURL, sourceApp: sourceApp),
-           timestamp.timeIntervalSince(pendingTerminalText.timestamp) <= 10 {
+           pendingTerminalText.isConfirmed(
+               content: content,
+               isURL: isURL,
+               sourceApp: sourceApp,
+               timestamp: timestamp
+           ) {
             self.pendingTerminalText = nil
             return isURL ? "capture.url.confirmed" : "capture.text.confirmed"
         }
@@ -238,7 +229,26 @@ final class ClipboardMonitorService {
     }
 }
 
-private struct PendingTerminalText {
+enum TerminalClipboardTextConfirmation {
+    static let confirmationWindow: TimeInterval = 10
+
+    private static let terminalAppNameFragments = [
+        "ghostty",
+        "terminal",
+        "iterm",
+        "warp",
+        "kitty",
+        "wezterm",
+        "alacritty",
+    ]
+
+    static func shouldRequireConfirmation(sourceApp: String?) -> Bool {
+        guard let normalized = sourceApp?.lowercased() else { return false }
+        return terminalAppNameFragments.contains { normalized.contains($0) }
+    }
+}
+
+struct PendingTerminalText {
     let content: String
     let isURL: Bool
     let timestamp: Date
@@ -248,5 +258,12 @@ private struct PendingTerminalText {
         self.content == content
             && self.isURL == isURL
             && self.sourceApp == sourceApp
+    }
+
+    func isConfirmed(content: String, isURL: Bool, sourceApp: String?, timestamp: Date) -> Bool {
+        let elapsed = timestamp.timeIntervalSince(self.timestamp)
+        return matches(content: content, isURL: isURL, sourceApp: sourceApp)
+            && elapsed >= 0
+            && elapsed <= TerminalClipboardTextConfirmation.confirmationWindow
     }
 }

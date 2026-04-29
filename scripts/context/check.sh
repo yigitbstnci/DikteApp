@@ -4,7 +4,10 @@ set -euo pipefail
 script_dir="${0:A:h}"
 repo_root="${script_dir:h:h}"
 index_file="$repo_root/docs/context/index.yml"
+tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/dikte-context-check.XXXXXX")"
 failures=0
+
+trap 'rm -rf "$tmp_dir"' EXIT
 
 error() {
   printf 'context-check: ERROR: %s\n' "$1" >&2
@@ -59,6 +62,34 @@ if [[ -f "$index_file" ]]; then
     ' "$index_file" | sort | uniq -d
   )"
   [[ -z "$duplicate_ids" ]] || error "duplicate session ids: $duplicate_ids"
+
+  awk '/^## DKT-ADR-[0-9]+:/ {
+    sub(/^## /, "")
+    sub(/:.*/, "")
+    print
+  }' "$repo_root/docs/decisions.md" | sort > "$tmp_dir/doc-decisions"
+  awk '/^[[:space:]]+-[[:space:]]+DKT-ADR-[0-9]+$/ {
+    sub(/^[[:space:]]+-[[:space:]]+/, "")
+    print
+  }' "$index_file" | sort > "$tmp_dir/index-decisions"
+  if ! diff -u "$tmp_dir/doc-decisions" "$tmp_dir/index-decisions" > "$tmp_dir/decision-diff"; then
+    cat "$tmp_dir/decision-diff" >&2
+    error "decision IDs in docs/decisions.md and docs/context/index.yml differ"
+  fi
+
+  awk '/^### DKT-TASK-[0-9]+:/ {
+    sub(/^### /, "")
+    sub(/:.*/, "")
+    print
+  }' "$repo_root/docs/tasks.md" | sort > "$tmp_dir/doc-tasks"
+  awk '/^[[:space:]]+-[[:space:]]+DKT-TASK-[0-9]+$/ {
+    sub(/^[[:space:]]+-[[:space:]]+/, "")
+    print
+  }' "$index_file" | sort > "$tmp_dir/index-tasks"
+  if ! diff -u "$tmp_dir/doc-tasks" "$tmp_dir/index-tasks" > "$tmp_dir/task-diff"; then
+    cat "$tmp_dir/task-diff" >&2
+    error "task IDs in docs/tasks.md and docs/context/index.yml differ"
+  fi
 fi
 
 private_pattern='(<private|BEGIN (RSA |OPENSSH |DSA |EC |PGP )?PRIVATE KEY|API[_-]?KEY=|TOKEN=|SECRET=|PASSWORD=|password:)'

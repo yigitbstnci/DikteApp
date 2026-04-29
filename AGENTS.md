@@ -37,15 +37,18 @@ This repo keeps agent continuity in committed Markdown files under `docs/`, plus
 
 At session start:
 
-1. Read `docs/current-state.md` and `docs/tasks.md`.
-2. Run `make context-load` when deeper continuity is useful.
+1. Run `make context-load` before planning or editing meaningful repo work.
+2. Read `docs/current-state.md` and `docs/tasks.md` directly when the task depends on current product state or open work.
 3. Use `docs/architecture.md` and `docs/decisions.md` for stable system context and prior decisions.
 
 Before ending meaningful work:
 
 1. Add a concise session summary with `make context-save SUMMARY=/path/to/session.md TITLE="short-title"`.
 2. Update `docs/current-state.md`, `docs/tasks.md`, or `docs/decisions.md` when facts, open work, or decisions changed.
-3. Run `make context-check`.
+3. Keep `docs/context/index.yml` synchronized whenever session summaries, decisions, or task IDs/status change.
+4. Run `make context-check`, or `make verify` when Swift code or tests changed.
+
+Context drift is a correctness bug. If `docs/decisions.md` or `docs/tasks.md` changes without matching `docs/context/index.yml` updates, fix the index before handing off. If a meaningful code or workflow change is made without a session summary, add one before finishing.
 
 Session summaries are for meaningful development blocks or daily summaries, not every recording, runtime log session, or small debugging attempt. Runtime log session IDs such as `session=d8a84ed8` belong in `~/Library/Logs/Dikte/dikte.log`; committed context should only keep distilled facts, decisions, verification, and follow-ups.
 
@@ -61,6 +64,7 @@ make stop
 make context-load
 make context-save SUMMARY=/path/to/session.md TITLE="short-title"
 make context-check
+make verify
 xcodebuild -list -project Dikte.xcodeproj
 xcodebuild -scheme Dikte -project Dikte.xcodeproj -configuration Debug build
 ```

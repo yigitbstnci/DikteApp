@@ -4,7 +4,7 @@ import XCTest
 final class PendingTerminalTextTests: XCTestCase {
     private let baseTimestamp = Date(timeIntervalSince1970: 1_000)
 
-    // MARK: - shouldConfirmTerminalText Tests
+    // MARK: - TerminalClipboardTextConfirmation Tests
 
     func testShouldConfirmTerminalTextMatchesKnownTerminals() {
         let knownTerminals = [
@@ -19,7 +19,7 @@ final class PendingTerminalTextTests: XCTestCase {
 
         for terminal in knownTerminals {
             XCTAssertTrue(
-                shouldConfirmTerminalText(sourceApp: terminal),
+                TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: terminal),
                 "Expected true for terminal: \(terminal)"
             )
         }
@@ -33,19 +33,19 @@ final class PendingTerminalTextTests: XCTestCase {
 
         for app in nonTerminals {
             XCTAssertFalse(
-                shouldConfirmTerminalText(sourceApp: app),
+                TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: app),
                 "Expected false for app: \(app)"
             )
         }
     }
 
     func testShouldConfirmTerminalTextReturnsFalseForNil() {
-        XCTAssertFalse(shouldConfirmTerminalText(sourceApp: nil))
+        XCTAssertFalse(TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: nil))
     }
 
     func testShouldConfirmTerminalTextHandlesPartialMatches() {
-        XCTAssertTrue(shouldConfirmTerminalText(sourceApp: "Ghostty Terminal"))
-        XCTAssertTrue(shouldConfirmTerminalText(sourceApp: "Safari with Ghostty"))
+        XCTAssertTrue(TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: "Ghostty Terminal"))
+        XCTAssertTrue(TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: "Safari with Ghostty"))
     }
 
     // MARK: - PendingTerminalText.matches Tests
@@ -105,7 +105,44 @@ final class PendingTerminalTextTests: XCTestCase {
         XCTAssertTrue(pending.matches(content: "https://example.com", isURL: true, sourceApp: "Ghostty"))
     }
 
-    // MARK: - 10 Second Timeout Tests
+    // MARK: - Confirmation Window Tests
+
+    func testPendingConfirmsWithin10Seconds() {
+        let pending = PendingTerminalText(
+            content: "echo hello",
+            isURL: false,
+            timestamp: baseTimestamp,
+            sourceApp: "Ghostty"
+        )
+
+        let withinWindow = baseTimestamp.addingTimeInterval(5)
+        XCTAssertTrue(
+            pending.isConfirmed(
+                content: "echo hello",
+                isURL: false,
+                sourceApp: "Ghostty",
+                timestamp: withinWindow
+            )
+        )
+    }
+
+    func testPendingConfirmsAt10SecondBoundary() {
+        let pending = PendingTerminalText(
+            content: "echo hello",
+            isURL: false,
+            timestamp: baseTimestamp,
+            sourceApp: "Ghostty"
+        )
+
+        XCTAssertTrue(
+            pending.isConfirmed(
+                content: "echo hello",
+                isURL: false,
+                sourceApp: "Ghostty",
+                timestamp: baseTimestamp.addingTimeInterval(TerminalClipboardTextConfirmation.confirmationWindow)
+            )
+        )
+    }
 
     func testPendingExpiresAfter10Seconds() {
         let pending = PendingTerminalText(
@@ -115,46 +152,32 @@ final class PendingTerminalTextTests: XCTestCase {
             sourceApp: "Ghostty"
         )
 
-        let justUnder10Seconds = baseTimestamp.addingTimeInterval(9.99)
-        XCTAssertFalse(
-            pending.timestamp.timeIntervalSince(baseTimestamp) > 10,
-            "This test is malformed - comparing same timestamp"
-        )
-
-        let withinWindow = baseTimestamp.addingTimeInterval(5)
-        XCTAssertTrue(
-            withinWindow.timeIntervalSince(pending.timestamp) <= 10,
-            "5 seconds should be within 10s window"
-        )
-
         let outsideWindow = baseTimestamp.addingTimeInterval(11)
-        XCTAssertTrue(
-            outsideWindow.timeIntervalSince(pending.timestamp) > 10,
-            "11 seconds should be outside 10s window"
+        XCTAssertFalse(
+            pending.isConfirmed(
+                content: "echo hello",
+                isURL: false,
+                sourceApp: "Ghostty",
+                timestamp: outsideWindow
+            )
         )
     }
 
-    // MARK: - Helper
+    func testPendingDoesNotConfirmBeforeOriginalTimestamp() {
+        let pending = PendingTerminalText(
+            content: "echo hello",
+            isURL: false,
+            timestamp: baseTimestamp,
+            sourceApp: "Ghostty"
+        )
 
-    private func shouldConfirmTerminalText(sourceApp: String?) -> Bool {
-        guard let normalized = sourceApp?.lowercased() else { return false }
-        let knownTerminals = [
-            "ghostty", "terminal", "iterm", "warp",
-            "kitty", "wezterm", "alacritty"
-        ]
-        return knownTerminals.contains { normalized.contains($0) }
-    }
-}
-
-struct PendingTerminalText {
-    let content: String
-    let isURL: Bool
-    let timestamp: Date
-    let sourceApp: String?
-
-    func matches(content: String, isURL: Bool, sourceApp: String?) -> Bool {
-        self.content == content
-            && self.isURL == isURL
-            && self.sourceApp == sourceApp
+        XCTAssertFalse(
+            pending.isConfirmed(
+                content: "echo hello",
+                isURL: false,
+                sourceApp: "Ghostty",
+                timestamp: baseTimestamp.addingTimeInterval(-1)
+            )
+        )
     }
 }

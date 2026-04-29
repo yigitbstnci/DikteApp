@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-04-28"
+updated_at: "2026-04-29"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-04-29-review-fix-context-index-terminal-tests
+    date: "2026-04-29"
+    title: "review fix context index terminal tests"
+    path: docs/context/sessions/2026-04-29-review-fix-context-index-terminal-tests.md
+    status: active
   - id: 2026-04-28-menu-bar-dropdown-menu
     date: "2026-04-28"
     title: "menu-bar-dropdown-menu"
@@ -45,11 +50,13 @@ decisions:
   - DKT-ADR-0004
   - DKT-ADR-0005
   - DKT-ADR-0006
+  - DKT-ADR-0007
 tasks:
   active: []
   ongoing:
     - DKT-TASK-0001
   backlog:
-    - DKT-TASK-0002
-    - DKT-TASK-0003
+    - DKT-TASK-0006
+    - DKT-TASK-0007
+  completed:
     - DKT-TASK-0004

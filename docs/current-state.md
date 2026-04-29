@@ -15,13 +15,13 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Structured logs are written to `~/Library/Logs/Dikte/dikte.log` with session correlation IDs and key-value diagnostic metadata.
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.
-- Unit tests currently cover merge behavior, cached model folder detection, and log line formatting.
+- Unit tests currently cover merge behavior, output formatting, clipboard item formatting, terminal text confirmation helpers, transcript cleanup, cached model folder detection, and log line formatting.
 
 ## Known Gaps
 
 - Settings UI still contains placeholder `.constant(...)` bindings for several options.
 - `OnboardingView` exists but is not wired into first-launch or model-download flow.
-- Test coverage is still narrow around app lifecycle, audio routing, clipboard capture, and UI behavior.
+- Test coverage is still narrow around app lifecycle, live audio routing, pasteboard integration, and UI behavior.
 - Documentation must stay aligned with implementation details such as polling interval, decode options, and model name.
 
 ## Current Context System Status
