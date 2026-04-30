@@ -50,8 +50,10 @@
 
 ## Context Updates
 
-- Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and `docs/context/index.yml` aligned when repo facts, tasks, or decisions change.
-- If feature work needs tests that are not added immediately, open a concrete task in `docs/tasks.md`; `make test` must stay green.
+- Do not update context docs for every small edit. During active development, avoid repeatedly touching `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, or session summaries just because code changed.
+- Batch context updates when the user asks to commit/push, when preparing a handoff, or when the request is explicitly about docs/context rules.
+- At that boundary, update only the context files needed to reflect durable facts, open tasks, decisions, and verification.
+- If feature work needs tests that are not added immediately, record a concrete task in `docs/tasks.md` during commit/push preparation if the gap still exists; `make test` must stay green.
 - Tests must stay headless: no Whisper model downloads, microphone permission prompts, or GUI-driven app launches.
-- Use `make context-save SUMMARY=/path/to/session.md TITLE="short-title"` only for meaningful development summaries.
+- Use `make context-save SUMMARY=/path/to/session.md TITLE="short-title"` only for meaningful development summaries, normally as part of commit/push preparation.
 - Committed context must not include raw conversations, secrets, clipboard contents, dictated transcript text, or raw runtime logs.

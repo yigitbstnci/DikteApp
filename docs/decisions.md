@@ -7,7 +7,7 @@ This file records durable workflow and architecture decisions. Keep entries shor
 - Date: 2026-04-28
 - Status: Accepted
 - Decision: Durable agent context lives in committed Markdown docs plus `docs/context/index.yml`.
-- Consequence: Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and meaningful session summaries aligned.
+- Consequence: Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and meaningful session summaries aligned at commit/push or handoff boundaries.
 
 ## DKT-ADR-0002: Hook Automation Uses Repo Scripts
 
@@ -41,8 +41,8 @@ This file records durable workflow and architecture decisions. Keep entries shor
 
 - Date: 2026-04-28
 - Status: Accepted
-- Decision: `docs/context/sessions/` is for meaningful development blocks or daily summaries, not every small debugging step.
-- Consequence: Prefer updating current state, tasks, or an existing same-day summary for minor follow-ups.
+- Decision: Context updates are batched for meaningful development blocks, normally during commit/push preparation or handoff, not after every small code change.
+- Consequence: During active development, avoid repeated docs churn; update current state, tasks, decisions, and session summaries once the durable outcome is known.
 
 ## DKT-ADR-0007: Feature Work Must Track Test Coverage
 
