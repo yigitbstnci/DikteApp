@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Commit Standard"
+  short_description: "Standardizes git commit messages for this repo."
+  default_prompt: "Use the repo git commit standard to write or review commit messages."

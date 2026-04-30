@@ -22,10 +22,9 @@
 
 - Repo-local skills live under `.opencode/skills/`.
 - When a task explicitly names one of these skills, or clearly matches its purpose, read that skill's `SKILL.md` before planning or making changes.
-- `coding-guidelines` -> `.opencode/skills/coding-guidelines/SKILL.md`
-- Use for coding, review, debugging, or refactor work that should stay simple, surgical, and verifiable.
-- Future skills:
-- Add new repo-local skills here with `name -> path` and a one-line usage note.
+- `coding-guidelines` -> `.opencode/skills/coding-guidelines/SKILL.md`; use for coding, review, debugging, or refactor work that should stay simple, surgical, and verifiable.
+- `git-commit-standard` -> `.opencode/skills/git-commit-standard/SKILL.md`; use whenever writing, reviewing, editing, or suggesting git commit messages.
+- Future skills should be added here with `name -> path` and a one-line usage note.
   
 ## Runtime Invariants
 
