@@ -5,7 +5,7 @@ description: Standardize git commit messages for this repo. Use when Codex write
 
 # Git Commit Standard
 
-Use lightweight Conventional Commits plus a compact structured body for non-trivial work. The goal is that another AI can read the last three commits and understand what changed, why it changed, where it happened, how it was verified, and which session/agent/model/tooling produced it.
+Use lightweight Conventional Commits plus a short structured body for non-trivial work. The goal is that another AI can read the last three commits and understand the user's request, what changed, the before/after state, and which session/agent/model/tooling produced it.
 
 ## Format
 
@@ -36,7 +36,7 @@ Structured body when needed.
 
 Small docs/test/chore commits may use only the subject when the diff is obvious.
 
-Use the compact handoff body when a commit:
+Use the handoff body when a commit:
 
 - changes behavior
 - fixes a bug
@@ -45,21 +45,24 @@ Use the compact handoff body when a commit:
 - creates, removes, or changes a durable interface/model/service
 - needs context for a future agent to understand it from commit history alone
 
-## Compact Handoff Body
+## Handoff Body
 
-Use one line per section. Do not use bullets. Do not add blank lines between body sections. Omit `Open` when there is no follow-up.
+Use bullet lists, but keep spacing tight. Do not add blank lines between body sections. Use as many bullets as the section genuinely needs, and keep them short.
 
 ```text
-Context: why this change exists.
-Before: previous behavior or structure.
-After: new behavior or structure.
-Changed: main files, models, services, or workflows affected.
-Verification: commands, tests, builds, or checks run.
-Open: remaining uncertainty or follow-up, if any.
-Metadata: session=<id>; agent=<Codex|Claude|Cursor|Manual|Not recorded>; model=<name|Not recorded>; tooling=<tools>
+Request:
+- User's core request or problem.
+Summary:
+- Concise description of what changed.
+Before:
+- Previous behavior or structure.
+After:
+- New behavior or structure.
+Metadata:
+- session=<id>; agent=<Codex|Claude|Cursor|Manual|Not recorded>; model=<name|Not recorded>; tooling=<tools>
 ```
 
-Pack each line aggressively. Prefer semicolons over extra lines. Keep details factual and short. Do not paste raw logs, private content, transcript text, clipboard text, or unrelated implementation detail.
+Keep each bullet short and avoid filler. Do not include `Verification` in the commit body unless the user explicitly asks for it. Do not paste raw logs, private content, transcript text, clipboard text, or unrelated implementation detail.
 
 If exact session/model/tool data is unavailable, write `Not recorded`; do not invent metadata.
 
@@ -70,7 +73,7 @@ If exact session/model/tool data is unavailable, write `Not recorded`; do not in
 3. Commit only files that belong to the requested change.
 4. If unrelated work exists, leave it unstaged and mention it in the final response.
 5. For docs/context-only commits, prefer `docs: ...`.
-6. For non-trivial commits, include the compact handoff body.
+6. For non-trivial commits, include the handoff body.
 
 ## Examples
 
@@ -85,10 +88,14 @@ build: add faster-whisper helper resources
 ```text
 fix(settings): remove main actor isolation from app settings
 
-Context: AppSettings tests failed with MainActor isolation; settings stores plain preferences and does not call UI APIs.
-Before: AppSettings was MainActor-isolated; tests needed main actor access for simple reads and writes.
-After: AppSettings remains Observable but is nonisolated; tests can mutate it without UI actor coupling.
-Changed: AppSettings isolation and settings tests.
-Verification: make test.
-Metadata: session=2026-04-30-app-settings-mainactor; agent=Codex; model=GPT-5; tooling=shell, apply_patch, xcodebuild
+Request:
+- Fix AppSettings test failures caused by MainActor isolation.
+Summary:
+- AppSettings remains Observable but no longer requires main actor access for plain settings reads and writes.
+Before:
+- AppSettings was MainActor-isolated; tests needed main actor access for simple mutations.
+After:
+- AppSettings is nonisolated; settings tests can instantiate and mutate it without UI actor coupling.
+Metadata:
+- session=2026-04-30-app-settings-mainactor; agent=Codex; model=GPT-5; tooling=shell, apply_patch, xcodebuild
 ```
