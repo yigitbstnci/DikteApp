@@ -18,6 +18,15 @@
 - Full verification: `make verify` runs `make context-check` then `make test`.
 - Docs/instruction-only changes usually need `make context-check`; skip app build/tests unless scripts, project config, or code changed.
 
+## Local Skills
+
+- Repo-local skills live under `.opencode/skills/`.
+- When a task explicitly names one of these skills, or clearly matches its purpose, read that skill's `SKILL.md` before planning or making changes.
+- `coding-guidelines` -> `.opencode/skills/coding-guidelines/SKILL.md`
+- Use for coding, review, debugging, or refactor work that should stay simple, surgical, and verifiable.
+- Future skills:
+- Add new repo-local skills here with `name -> path` and a one-line usage note.
+  
 ## Runtime Invariants
 
 - Preserve local-first behavior. Do not add network transcription, telemetry, or remote dependencies without explicit approval.
