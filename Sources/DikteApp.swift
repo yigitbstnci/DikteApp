@@ -41,7 +41,7 @@ struct DikteApp: App {
                 FloatingHUDManager.shared.hideHUD()
             }
         }
-        .onChange(of: appState.modelReadyState) { oldState, newState in
+        .onChange(of: appState.modelReadyState) { _, newState in
             switch newState {
             case .preparing:
                 FloatingHUDManager.shared.showHUD(appState: appState)
@@ -55,7 +55,7 @@ struct DikteApp: App {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }
         }
-        .onChange(of: appState.processingError) { oldError, newError in
+        .onChange(of: appState.processingError) { _, newError in
             if newError != nil {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }

@@ -16,13 +16,6 @@ No active tasks are currently recorded.
 
 ## Backlog
 
-### DKT-TASK-0006: Wire Onboarding Into First Launch
-
-- Status: In Progress (partial)
-- Goal: Connect `OnboardingView` to first-run setup and local Whisper model download state.
-- Notes: Partial implementation exists through HUD model readiness; standalone first-launch flow is still open.
-- Started: 2026-04-30
-
 ## Completed
 
 ### DKT-TASK-0007: Replace Placeholder Settings Bindings

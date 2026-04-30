@@ -22,15 +22,6 @@ enum DikteLog {
             }
         }
 
-        var marker: String {
-            switch self {
-            case .warning, .error:
-                return "!!"
-            case .action, .info:
-                return "--"
-            }
-        }
-
         var ansiColor: String {
             switch self {
             case .action:

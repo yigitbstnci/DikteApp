@@ -103,10 +103,6 @@ final class AppSettings {
         DictationLanguage.language(for: dictationLanguageCode) ?? DictationLanguage.supportedLanguages[0]
     }
 
-    var canChangeSettings: Bool {
-        true
-    }
-
     func resetToDefaults() {
         whisperModelID = WhisperModel.defaultModelID
         dictationLanguageCode = "tr"

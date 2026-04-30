@@ -24,7 +24,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 
 ## Known Gaps
 
-- HUD shows model readiness on launch; `OnboardingView` is wired to `AppState.modelReadyState` but its standalone first-launch window flow is not yet implemented.
+- HUD shows model readiness on launch through the floating HUD.
 - Test coverage is still narrow around app lifecycle, live audio routing, pasteboard integration, and UI behavior.
 - Documentation must stay aligned with implementation details such as polling interval, decode options, and model name.
 

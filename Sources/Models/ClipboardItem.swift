@@ -11,9 +11,6 @@ struct ClipboardItem: Identifiable, Sendable {
     let sourceApp: String?       // Which app the content was copied from
     let fileSize: Int64?         // File size in bytes (for saved items)
 
-    /// Relative time in seconds since recording started
-    var relativeTime: TimeInterval = 0
-
     enum ClipboardItemType: String, Sendable {
         case text
         case url

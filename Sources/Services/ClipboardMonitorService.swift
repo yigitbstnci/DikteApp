@@ -97,7 +97,7 @@ final class ClipboardMonitorService {
                     "bytes": item.fileSize ?? 0,
                     "change_count": currentCount,
                     "items": items.count,
-                    "relative_s": String(format: "%.2f", item.relativeTime),
+                    "relative_s": String(format: "%.2f", now.timeIntervalSince(monitoringStartTime)),
                     "source": sourceApp ?? "?"
                 ], sessionID: sessionID))
             }
@@ -128,7 +128,7 @@ final class ClipboardMonitorService {
                 "change_count": currentCount,
                 "chars": string.count,
                 "items": items.count,
-                "relative_s": String(format: "%.2f", item.relativeTime),
+                "relative_s": String(format: "%.2f", now.timeIntervalSince(monitoringStartTime)),
                 "source": sourceApp ?? "?"
             ], sessionID: sessionID))
         }
@@ -189,8 +189,7 @@ final class ClipboardMonitorService {
             textContent: content,
             imageFilePath: fileURL.path,
             sourceApp: sourceApp,
-            fileSize: fileSize,
-            relativeTime: timestamp.timeIntervalSince(monitoringStartTime)
+            fileSize: fileSize
         )
     }
 
@@ -217,8 +216,7 @@ final class ClipboardMonitorService {
                 textContent: nil,
                 imageFilePath: fileURL.path,
                 sourceApp: sourceApp,
-                fileSize: fileSize,
-                relativeTime: timestamp.timeIntervalSince(monitoringStartTime)
+                fileSize: fileSize
             )
         } catch {
             DikteLog.error("clipboard", "save.image.failed", error.localizedDescription, metadata: DikteLog.metadata([

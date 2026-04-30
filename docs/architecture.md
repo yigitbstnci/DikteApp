@@ -21,7 +21,7 @@ Dikte is a native macOS menu bar app for context-aware dictation.
 - `Sources/Services/TranscriptionService.swift`: WhisperKit model load, audio normalization, fallback decode path, and transcript cleanup.
 - `Sources/Services/MergerService.swift`: transcript-plus-clipboard merge logic.
 - `Sources/Services/DikteLog.swift`: structured local logs with per-recording session IDs.
-- `Sources/Views/`: menu bar controls, floating HUD, settings, and onboarding surfaces.
+- `Sources/Views/`: menu bar controls, floating HUD, and settings surfaces.
 
 ## Critical Behavior
 
