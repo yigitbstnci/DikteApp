@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import KeyboardShortcuts
 
 /// Dikte — Menu Bar only macOS app.
 /// LSUIElement = true in Info.plist hides the Dock icon.
@@ -32,22 +31,34 @@ struct DikteApp: App {
         }
         .onChange(of: appState.showResult) { _, showResult in
             if showResult {
-                // Auto hide HUD after 3 seconds when result is shown
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                     appState.showResult = false
-                    if !appState.isRecording && !appState.isProcessing {
+                    if !appState.isRecording && !appState.isProcessing && appState.processingError == nil {
                         FloatingHUDManager.shared.hideHUD()
                     }
                 }
-            } else if !appState.isRecording && !appState.isProcessing {
+            } else if !appState.isRecording && !appState.isProcessing && appState.processingError == nil {
                 FloatingHUDManager.shared.hideHUD()
             }
         }
-
-        // Settings window for keyboard shortcut configuration
-        Settings {
-            SettingsView()
-                .environment(appState)
+        .onChange(of: appState.modelReadyState) { oldState, newState in
+            switch newState {
+            case .preparing:
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            case .ready:
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    if !appState.isRecording && !appState.isProcessing && !appState.showResult && appState.processingError == nil {
+                        FloatingHUDManager.shared.hideHUD()
+                    }
+                }
+            case .failed:
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            }
+        }
+        .onChange(of: appState.processingError) { oldError, newError in
+            if newError != nil {
+                FloatingHUDManager.shared.showHUD(appState: appState)
+            }
         }
     }
 }

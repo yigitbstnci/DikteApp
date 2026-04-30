@@ -5,11 +5,23 @@ struct FloatingHUDView: View {
     
     var body: some View {
         VStack(alignment: .trailing, spacing: 12) {
-            if appState.isRecording || appState.isProcessing || appState.showResult {
+            if appState.isRecording {
                 mainCard
                     .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.isProcessing {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.showResult {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else if appState.processingError != nil {
+                mainCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            } else {
+                modelReadyCard
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
-            
+
             if !appState.clipboardMonitor.items.isEmpty && (appState.isRecording || appState.isProcessing || appState.showResult) {
                 clipboardStack
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -23,22 +35,24 @@ struct FloatingHUDView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.isRecording)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.isProcessing)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.showResult)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.processingError)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.clipboardMonitor.items.count)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.modelReadyState)
     }
-    
+
     private var mainCard: some View {
         HStack(spacing: 12) {
             if appState.isRecording {
                 FluidBlobView()
                     .frame(width: 24, height: 24)
-                
+
                 Text(appState.formattedDuration)
                     .font(.dzSmallText())
                     .foregroundColor(.dzTextPrimary)
                     .monospacedDigit()
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     appState.stopRecording()
                 }) {
@@ -50,7 +64,7 @@ struct FloatingHUDView: View {
             } else if appState.isProcessing {
                 ProgressView()
                     .controlSize(.small)
-                
+
                 if appState.processingStatus.contains("Ses metne") {
                     Text("✓ Saved ➝ Transcribing...")
                         .font(.dzSmallText())
@@ -64,7 +78,7 @@ struct FloatingHUDView: View {
                         .font(.dzSmallText())
                         .foregroundColor(.dzTextMuted)
                 }
-                
+
                 Spacer()
             } else if appState.showResult {
                 Image(systemName: "checkmark.circle.fill")
@@ -73,7 +87,60 @@ struct FloatingHUDView: View {
                     .font(.dzSmallText())
                     .foregroundColor(.dzSuccess)
                 Spacer()
+            } else if let errorMessage = appState.processingError {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Kayıt işlenemedi")
+                        .font(.dzSmallText())
+                        .foregroundColor(.red)
+                    Text(errorMessage)
+                        .font(.system(size: 10, weight: .regular, design: .rounded))
+                        .foregroundColor(.dzTextMuted)
+                        .lineLimit(1)
+                }
+                Spacer()
             }
+        }
+        .padding(12)
+        .frame(width: 280)
+        .glassPanel(radius: 12)
+    }
+
+    private var modelReadyCard: some View {
+        HStack(spacing: 12) {
+            switch appState.modelReadyState {
+            case .preparing:
+                ProgressView()
+                    .controlSize(.small)
+                Text("Model hazırlanıyor...")
+                    .font(.dzSmallText())
+                    .foregroundColor(.dzTextMuted)
+            case .ready:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.dzSuccess)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Model Ready")
+                        .font(.dzSmallText())
+                        .foregroundColor(.dzSuccess)
+                    Text("Kayıt kısayolu Ayarlar'dan değiştirilebilir")
+                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .foregroundColor(.dzTextMuted)
+                }
+            case .failed(let message):
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Model hazırlanamadı")
+                        .font(.dzSmallText())
+                        .foregroundColor(.red)
+                    Text(message)
+                        .font(.system(size: 10, weight: .regular, design: .rounded))
+                        .foregroundColor(.dzTextMuted)
+                        .lineLimit(1)
+                }
+            }
+            Spacer()
         }
         .padding(12)
         .frame(width: 280)

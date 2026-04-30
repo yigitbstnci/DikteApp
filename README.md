@@ -46,4 +46,4 @@ You can still open `Dikte.xcodeproj` and run the app from Xcode when UI debuggin
 
 ## 📖 System Architecture
 
-For a deep dive into the underlying services, timestamp logic, and model caching mechanisms, please read the [PROJECT_DETAIL.md](PROJECT_DETAIL.md).
+For a deep dive into the underlying services, timestamp logic, and model caching mechanisms, please read [docs/architecture.md](docs/architecture.md).

@@ -1,135 +1,288 @@
 import SwiftUI
+import AppKit
 
-/// Main popover content shown when the menu bar icon is clicked.
-/// "Fluid Zen" Edition
+/// SwiftUI panel shown when the menu bar icon is clicked.
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
+    @State private var selectedSection: PanelSection = .recording
 
     var body: some View {
-        VStack(spacing: 24) {
-            // Top Section: Title & Settings
-            HStack {
+        VStack(spacing: 0) {
+            header
+
+            Picker("", selection: $selectedSection) {
+                ForEach(PanelSection.allCases) { section in
+                    Label(section.title, systemImage: section.systemImage)
+                        .tag(section)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal, 14)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            Group {
+                switch selectedSection {
+                case .recording:
+                    recordingPanel
+                case .clipboard:
+                    clipboardPanel
+                case .settings:
+                    SettingsView()
+                        .environment(appState)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 300, alignment: .top)
+
+            Divider()
+
+            footer
+        }
+        .frame(width: 380)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private var header: some View {
+        HStack(spacing: 12) {
+            Image(systemName: appState.isRecording ? "record.circle.fill" : "mic.badge.plus")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(appState.isRecording ? .red : .dzPrimary)
+
+            VStack(alignment: .leading, spacing: 2) {
                 Text("Dikte")
                     .font(.dzHeading())
-                    .foregroundColor(.dzTextPrimary)
-                
+                Text(statusText)
+                    .font(.dzSmallText())
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding(14)
+    }
+
+    private var recordingPanel: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            statusCard
+
+            Button(action: appState.toggleRecording) {
+                Label(recordingActionTitle, systemImage: recordingActionIcon)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(appState.isProcessing)
+
+            if let processingError = appState.processingError {
+                Label(processingError, systemImage: "exclamationmark.triangle")
+                    .font(.dzSmallText())
+                    .foregroundStyle(.red)
+            }
+
+            modelStateRow
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+    }
+
+    private var statusCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(statusText)
+                    .font(.dzBody())
+                    .fontWeight(.semibold)
                 Spacer()
-                
-                Button(action: {
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                }) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.dzTextMuted)
-                }
-                .buttonStyle(.plain)
-                
-                Button(action: {
-                    NSApplication.shared.terminate(nil)
-                }) {
-                    Image(systemName: "power")
-                        .font(.system(size: 14))
-                        .foregroundColor(.dzTextMuted)
-                }
-                .buttonStyle(.plain)
+                Text(appState.formattedDuration)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundStyle(appState.isRecording ? .red : .secondary)
             }
-            
-            // Center Section: Status Ring
-            statusRing
-            
-            // Bottom Section: Context Info or Toggle
-            contextToggle
-        }
-        .padding(24)
-        .frame(width: 320)
-        // macOS MenuBarExtra window style will frame this, but we apply our custom glass background
-        // Note: MenuBarExtra inherently has some background on macOS, but .window style allows custom backgrounds
-        .glassPanel(radius: 18)
-    }
-    
-    // MARK: - Status Ring
-    
-    private var statusRing: some View {
-        Button(action: {
-            if !appState.isProcessing {
-                appState.toggleRecording()
-            }
-        }) {
-            ZStack {
-                // Background glow/ring
-                Circle()
-                    .fill(Color.dzSurfaceGlass)
-                    .frame(width: 120, height: 120)
-                    .shadow(color: appState.isRecording ? Color.dzPrimary.opacity(0.5) : .clear, radius: 20)
-                
-                if appState.isRecording {
-                    // Fluid Blob for recording
-                    FluidBlobView()
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
-                    
-                    Text(appState.formattedDuration)
-                        .font(.dzHeading())
-                        .foregroundColor(.dzTextPrimary)
-                        .monospacedDigit()
-                } else if appState.isProcessing {
-                    ProgressView()
-                        .controlSize(.regular)
-                } else if appState.showResult {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 40, weight: .semibold))
-                        .foregroundColor(.dzSuccess)
-                } else {
-                    // Idle
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.dzTextMuted)
-                }
-            }
-            .frame(height: 140) // Give it breathing room
-        }
-        .buttonStyle(SquishyButtonStyle())
-    }
-    
-    // MARK: - Context Toggle
-    
-    private var contextToggle: some View {
-        VStack(spacing: 8) {
-            if appState.isRecording {
-                Text("Kayıt devam ediyor...")
+
+            if appState.isProcessing {
+                ProgressView()
+                Text(appState.processingStatus.isEmpty ? "Yerel olarak işleniyor..." : appState.processingStatus)
                     .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
-                
-                Text("Panoya bir şeyler kopyalayın")
+                    .foregroundStyle(.secondary)
+            } else if appState.isRecording {
+                Text("Pano takip ediliyor. Bitirdiğinde kayıt durdurulacak ve sonuç panoya yazılacak.")
                     .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
-            } else if appState.isProcessing {
-                Text("Yerel olarak işleniyor...")
-                    .font(.dzSmallText())
-                    .foregroundColor(.dzTextPrimary)
-            } else if appState.showResult {
-                Text("Panoya Kopyalandı")
-                    .font(.dzButtonText())
-                    .foregroundColor(.dzSuccess)
+                    .foregroundStyle(.secondary)
             } else {
-                Text("Başlamak için dokun veya ⌘⇧Space")
+                Text("Kısayolu Ayarlar sekmesinden değiştirebilirsin.")
                     .font(.dzSmallText())
-                    .foregroundColor(.dzTextMuted)
+                    .foregroundStyle(.secondary)
             }
         }
-        .frame(height: 40)
+        .padding(12)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var modelStateRow: some View {
+        HStack(spacing: 10) {
+            switch appState.modelReadyState {
+            case .preparing:
+                ProgressView()
+                    .controlSize(.small)
+                Text("Model hazırlanıyor")
+            case .ready:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("Model hazır")
+            case .failed:
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.red)
+                Text("Model hazırlanamadı")
+            }
+
+            Spacer()
+            Text(appState.settings.selectedModel.displayName)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .font(.dzSmallText())
+    }
+
+    private var clipboardPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label(appState.isRecording ? "Pano takibi aktif" : "Pano takibi pasif", systemImage: appState.isRecording ? "checkmark.circle" : "pause.circle")
+                Spacer()
+                if let currentSession = appState.currentSession {
+                    Text("Son: \(currentSession.clipboardItems.count) öğe")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.dzBody())
+
+            let items = appState.isRecording ? appState.clipboardMonitor.items : (appState.currentSession?.clipboardItems ?? [])
+
+            if items.isEmpty {
+                ContentUnavailableView(
+                    "Pano öğesi yok",
+                    systemImage: "doc.on.clipboard",
+                    description: Text("Kayıt sırasında kopyaladığın metin, link veya görseller burada özetlenir.")
+                )
+                .frame(maxWidth: .infinity, minHeight: 180)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(Array(items.prefix(8))) { item in
+                            clipboardRow(item)
+                        }
+                    }
+                }
+                .frame(maxHeight: 240)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+    }
+
+    private func clipboardRow(_ item: ClipboardItem) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: clipboardIcon(for: item))
+                .foregroundStyle(Color.dzPrimary)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.sourceApp ?? "Pano")
+                    .font(.dzSmallText())
+                Text(clipboardDescription(for: item))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding(10)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private var footer: some View {
+        HStack {
+            Text(appState.settings.selectedLanguage.displayName)
+                .font(.dzSmallText())
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button("Çıkış", action: quit)
+                .keyboardShortcut("q")
+        }
+        .padding(14)
+    }
+
+    private var statusText: String {
+        if appState.isProcessing {
+            return "İşleniyor"
+        }
+
+        if appState.isRecording {
+            return "Kayıt: \(appState.formattedDuration)"
+        }
+
+        if appState.showResult {
+            return "Panoya kopyalandı"
+        }
+
+        return "Hazır"
+    }
+
+    private var recordingActionTitle: String {
+        appState.isRecording ? "Kaydı Durdur" : "Kayıt Başlat"
+    }
+
+    private var recordingActionIcon: String {
+        appState.isRecording ? "stop.circle" : "mic.circle"
+    }
+
+    private func clipboardIcon(for item: ClipboardItem) -> String {
+        switch item.type {
+        case .image: return "photo"
+        case .url: return "link"
+        case .text: return "text.alignleft"
+        }
+    }
+
+    private func clipboardDescription(for item: ClipboardItem) -> String {
+        switch item.type {
+        case .image:
+            return "Görsel · \(item.formattedFileSize)"
+        case .url:
+            return "URL · \(item.formattedFileSize)"
+        case .text:
+            return "Metin · \(item.formattedFileSize)"
+        }
+    }
+
+    private func quit() {
+        NSApplication.shared.terminate(nil)
     }
 }
 
-// Custom button style for the squishy ring click
-struct SquishyButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
+private enum PanelSection: String, CaseIterable, Identifiable {
+    case recording
+    case clipboard
+    case settings
 
-#Preview {
-    MenuBarView()
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .recording: return "Kayıt"
+        case .clipboard: return "Pano"
+        case .settings: return "Ayarlar"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .recording: return "waveform"
+        case .clipboard: return "doc.on.clipboard"
+        case .settings: return "gearshape"
+        }
+    }
 }

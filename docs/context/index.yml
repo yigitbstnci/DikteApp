@@ -1,0 +1,73 @@
+version: 1
+updated_at: "2026-04-30"
+project: "Dikte"
+context_contract:
+  source_of_truth: "committed Markdown files"
+  load_command: "make context-load"
+  save_command: "make context-save SUMMARY=/path/to/session.md TITLE=\"short-title\""
+  check_command: "make context-check"
+load_order:
+  - docs/current-state.md
+  - docs/tasks.md
+  - docs/context/sessions
+  - docs/decisions.md
+  - docs/architecture.md
+session_summaries:
+  - id: 2026-04-30-hud-model-readiness-on-launch
+    date: "2026-04-30"
+    title: "HUD model readiness on launch"
+    path: docs/context/sessions/2026-04-30-hud-model-readiness-on-launch.md
+    status: active
+  - id: 2026-04-29-transcription-speed-optimization
+    date: "2026-04-29"
+    title: "transcription speed optimization"
+    path: docs/context/sessions/2026-04-29-transcription-speed-optimization.md
+    status: active
+  - id: 2026-04-29-review-fix-context-index-terminal-tests
+    date: "2026-04-29"
+    title: "review fix context index terminal tests"
+    path: docs/context/sessions/2026-04-29-review-fix-context-index-terminal-tests.md
+    status: active
+  - id: 2026-04-28-menu-bar-dropdown-menu
+    date: "2026-04-28"
+    title: "menu-bar-dropdown-menu"
+    path: docs/context/sessions/2026-04-28-menu-bar-dropdown-menu.md
+    status: active
+  - id: 2026-04-28-structured-logging-metadata
+    date: "2026-04-28"
+    title: "structured logging metadata"
+    path: docs/context/sessions/2026-04-28-structured-logging-metadata.md
+    status: active
+  - id: 2026-04-28-close-active-context-task
+    date: "2026-04-28"
+    title: "close active context task"
+    path: docs/context/sessions/2026-04-28-close-active-context-task.md
+    status: active
+  - id: 2026-04-28-remove-project-detail-md
+    date: "2026-04-28"
+    title: "remove project detail md"
+    path: docs/context/sessions/2026-04-28-remove-project-detail-md.md
+    status: active
+  - id: 2026-04-28-repo-context-system-implementation
+    date: "2026-04-28"
+    title: "repo context system implementation"
+    path: docs/context/sessions/2026-04-28-repo-context-system-implementation.md
+    status: active
+decisions:
+  - DKT-ADR-0001
+  - DKT-ADR-0002
+  - DKT-ADR-0003
+  - DKT-ADR-0004
+  - DKT-ADR-0005
+  - DKT-ADR-0006
+  - DKT-ADR-0007
+tasks:
+  active: []
+  ongoing:
+    - DKT-TASK-0001
+  backlog:
+    - DKT-TASK-0006
+  completed:
+    - DKT-TASK-0004
+    - DKT-TASK-0007
+    - DKT-TASK-0008

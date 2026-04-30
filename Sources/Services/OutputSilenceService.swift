@@ -6,11 +6,11 @@ import CoreAudio
 final class OutputSilenceService {
     private var restoreState: RestoreState?
 
-    func silenceForRecording() {
+    func silenceForRecording(sessionID: String? = nil) {
         guard restoreState == nil else { return }
 
         guard let deviceID = defaultOutputDeviceID() else {
-            DikteLog.warning("output", "silence.missingDevice", "Varsayılan çıkış cihazı bulunamadı.")
+            DikteLog.warning("output", "silence.missingDevice", "Varsayılan çıkış cihazı bulunamadı.", metadata: DikteLog.metadata(sessionID: sessionID))
             return
         }
 
@@ -20,7 +20,10 @@ final class OutputSilenceService {
                 previousMute: previousMute,
                 previousVolumes: []
             )
-            DikteLog.action("output", "silence.mute", "Sistem çıkışı kayıt boyunca susturuldu.")
+            DikteLog.action("output", "silence.mute", "Sistem çıkışı kayıt boyunca susturuldu.", metadata: DikteLog.metadata([
+                "device_id": deviceID,
+                "previous_mute": previousMute
+            ], sessionID: sessionID))
             return
         }
 
@@ -31,14 +34,19 @@ final class OutputSilenceService {
                 previousMute: nil,
                 previousVolumes: mutedVolumes
             )
-            DikteLog.action("output", "silence.volume", "Sistem çıkış seviyesi kayıt boyunca 0'a çekildi.")
+            DikteLog.action("output", "silence.volume", "Sistem çıkış seviyesi kayıt boyunca 0'a çekildi.", metadata: DikteLog.metadata([
+                "channels": mutedVolumes.map { String($0.element) }.joined(separator: ","),
+                "device_id": deviceID
+            ], sessionID: sessionID))
             return
         }
 
-        DikteLog.warning("output", "silence.unsupported", "Çıkış cihazı mute/volume kontrolü sağlamıyor.")
+        DikteLog.warning("output", "silence.unsupported", "Çıkış cihazı mute/volume kontrolü sağlamıyor.", metadata: DikteLog.metadata([
+            "device_id": deviceID
+        ], sessionID: sessionID))
     }
 
-    func restore() {
+    func restore(sessionID: String? = nil) {
         guard let restoreState else { return }
 
         var restored = false
@@ -51,9 +59,13 @@ final class OutputSilenceService {
         }
 
         if restored {
-            DikteLog.action("output", "restore.success", "Sistem çıkışı eski haline alındı.")
+            DikteLog.action("output", "restore.success", "Sistem çıkışı eski haline alındı.", metadata: DikteLog.metadata([
+                "device_id": restoreState.deviceID
+            ], sessionID: sessionID))
         } else {
-            DikteLog.warning("output", "restore.failed", "Sistem çıkışı eski haline alınamadı.")
+            DikteLog.warning("output", "restore.failed", "Sistem çıkışı eski haline alınamadı.", metadata: DikteLog.metadata([
+                "device_id": restoreState.deviceID
+            ], sessionID: sessionID))
         }
 
         self.restoreState = nil

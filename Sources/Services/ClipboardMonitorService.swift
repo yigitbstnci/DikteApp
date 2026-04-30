@@ -14,6 +14,7 @@ final class ClipboardMonitorService {
     private(set) var items: [ClipboardItem] = []
     private var monitoringStartTime: Date = .distantPast
     private var pendingTerminalText: PendingTerminalText?
+    private var activeSessionID: String?
 
     /// Base directory to save all clipboard artifacts (images + text files)
     private let storageDir: URL = {
@@ -24,9 +25,10 @@ final class ClipboardMonitorService {
     }()
 
     /// Begin watching the clipboard. Called when recording starts.
-    func startMonitoring() {
+    func startMonitoring(sessionID: String? = nil) {
         items = []
         pendingTerminalText = nil
+        activeSessionID = sessionID
         monitoringStartTime = Date()
         lastChangeCount = NSPasteboard.general.changeCount
 
@@ -36,22 +38,35 @@ final class ClipboardMonitorService {
                 self?.checkClipboard()
             }
         }
-        DikteLog.action("clipboard", "monitor.start", "Clipboard izleme başladı.")
+        DikteLog.action("clipboard", "monitor.start", "Clipboard izleme başladı.", metadata: DikteLog.metadata([
+            "change_count": lastChangeCount,
+            "poll_interval_s": "0.30"
+        ], sessionID: sessionID))
     }
 
     /// Stop watching and return all captured items.
-    func stopMonitoring() -> [ClipboardItem] {
+    func stopMonitoring(sessionID: String? = nil) -> [ClipboardItem] {
+        let logSessionID = sessionID ?? activeSessionID
         timer?.invalidate()
         timer = nil
         if let pendingTerminalText {
             DikteLog.info(
                 "clipboard",
                 "capture.text.discarded",
-                "[\(pendingTerminalText.sourceApp ?? "?")] terminal seçimi kopya onayı gelmediği için atlandı."
+                "[\(pendingTerminalText.sourceApp ?? "?")] terminal seçimi kopya onayı gelmediği için atlandı.",
+                metadata: DikteLog.metadata([
+                    "bytes": pendingTerminalText.content.utf8.count,
+                    "chars": pendingTerminalText.content.count,
+                    "source": pendingTerminalText.sourceApp ?? "?",
+                    "type": pendingTerminalText.isURL ? "url" : "text"
+                ], sessionID: logSessionID)
             )
         }
         pendingTerminalText = nil
-        DikteLog.action("clipboard", "monitor.stop", "\(items.count) öğe yakalandı.")
+        activeSessionID = nil
+        DikteLog.action("clipboard", "monitor.stop", "Clipboard izleme durdu.", metadata: DikteLog.metadata([
+            "items": items.count
+        ], sessionID: logSessionID))
         return items
     }
 
@@ -71,13 +86,20 @@ final class ClipboardMonitorService {
 
         let now = Date()
         let sourceApp = frontmostAppName()
+        let sessionID = activeSessionID
 
         // Check for image first (higher priority if both exist)
         if let image = pasteboard.readObjects(forClasses: [NSImage.self], options: nil)?.first as? NSImage {
             pendingTerminalText = nil
             if let item = saveImage(image, timestamp: now, sourceApp: sourceApp) {
                 items.append(item)
-                DikteLog.action("clipboard", "capture.image", "[\(sourceApp ?? "?")]")
+                DikteLog.action("clipboard", "capture.image", "Görüntü yakalandı.", metadata: DikteLog.metadata([
+                    "bytes": item.fileSize ?? 0,
+                    "change_count": currentCount,
+                    "items": items.count,
+                    "relative_s": String(format: "%.2f", item.relativeTime),
+                    "source": sourceApp ?? "?"
+                ], sessionID: sessionID))
             }
         }
         // Check for string (URL or text)
@@ -85,7 +107,7 @@ final class ClipboardMonitorService {
             let isURL = string.hasPrefix("http://") || string.hasPrefix("https://")
             var captureEvent = isURL ? "capture.url" : "capture.text"
 
-            if shouldConfirmTerminalText(sourceApp: sourceApp) {
+            if TerminalClipboardTextConfirmation.shouldRequireConfirmation(sourceApp: sourceApp) {
                 guard let confirmedEvent = confirmOrStoreTerminalText(
                     string,
                     isURL: isURL,
@@ -101,21 +123,15 @@ final class ClipboardMonitorService {
 
             let item = saveText(string, isURL: isURL, timestamp: now, sourceApp: sourceApp)
             items.append(item)
-            DikteLog.action("clipboard", captureEvent, "[\(sourceApp ?? "?")]")
+            DikteLog.action("clipboard", captureEvent, isURL ? "URL yakalandı." : "Metin yakalandı.", metadata: DikteLog.metadata([
+                "bytes": item.fileSize ?? 0,
+                "change_count": currentCount,
+                "chars": string.count,
+                "items": items.count,
+                "relative_s": String(format: "%.2f", item.relativeTime),
+                "source": sourceApp ?? "?"
+            ], sessionID: sessionID))
         }
-    }
-
-    private func shouldConfirmTerminalText(sourceApp: String?) -> Bool {
-        guard let normalized = sourceApp?.lowercased() else { return false }
-        return [
-            "ghostty",
-            "terminal",
-            "iterm",
-            "warp",
-            "kitty",
-            "wezterm",
-            "alacritty",
-        ].contains { normalized.contains($0) }
     }
 
     private func confirmOrStoreTerminalText(
@@ -125,8 +141,12 @@ final class ClipboardMonitorService {
         sourceApp: String?
     ) -> String? {
         if let pendingTerminalText,
-           pendingTerminalText.matches(content: content, isURL: isURL, sourceApp: sourceApp),
-           timestamp.timeIntervalSince(pendingTerminalText.timestamp) <= 10 {
+           pendingTerminalText.isConfirmed(
+               content: content,
+               isURL: isURL,
+               sourceApp: sourceApp,
+               timestamp: timestamp
+           ) {
             self.pendingTerminalText = nil
             return isURL ? "capture.url.confirmed" : "capture.text.confirmed"
         }
@@ -137,7 +157,12 @@ final class ClipboardMonitorService {
             timestamp: timestamp,
             sourceApp: sourceApp
         )
-        DikteLog.info("clipboard", "capture.text.pending", "[\(sourceApp ?? "?")] terminal seçimi bekletildi; Cmd+C ile onaylanırsa eklenecek.")
+        DikteLog.info("clipboard", "capture.text.pending", "[\(sourceApp ?? "?")] terminal seçimi bekletildi; Cmd+C ile onaylanırsa eklenecek.", metadata: DikteLog.metadata([
+            "bytes": content.utf8.count,
+            "chars": content.count,
+            "source": sourceApp ?? "?",
+            "type": isURL ? "url" : "text"
+        ], sessionID: activeSessionID))
         return nil
     }
 
@@ -152,7 +177,9 @@ final class ClipboardMonitorService {
             let attrs = try FileManager.default.attributesOfItem(atPath: fileURL.path)
             fileSize = (attrs[.size] as? Int64) ?? fileSize
         } catch {
-            DikteLog.error("clipboard", "save.text.failed", error.localizedDescription)
+            DikteLog.error("clipboard", "save.text.failed", error.localizedDescription, metadata: DikteLog.metadata([
+                "file": fileURL.lastPathComponent
+            ], sessionID: activeSessionID))
         }
 
         return ClipboardItem(
@@ -194,13 +221,34 @@ final class ClipboardMonitorService {
                 relativeTime: timestamp.timeIntervalSince(monitoringStartTime)
             )
         } catch {
-            DikteLog.error("clipboard", "save.image.failed", error.localizedDescription)
+            DikteLog.error("clipboard", "save.image.failed", error.localizedDescription, metadata: DikteLog.metadata([
+                "file": fileURL.lastPathComponent
+            ], sessionID: activeSessionID))
             return nil
         }
     }
 }
 
-private struct PendingTerminalText {
+enum TerminalClipboardTextConfirmation {
+    static let confirmationWindow: TimeInterval = 10
+
+    private static let terminalAppNameFragments = [
+        "ghostty",
+        "terminal",
+        "iterm",
+        "warp",
+        "kitty",
+        "wezterm",
+        "alacritty",
+    ]
+
+    static func shouldRequireConfirmation(sourceApp: String?) -> Bool {
+        guard let normalized = sourceApp?.lowercased() else { return false }
+        return terminalAppNameFragments.contains { normalized.contains($0) }
+    }
+}
+
+struct PendingTerminalText {
     let content: String
     let isURL: Bool
     let timestamp: Date
@@ -210,5 +258,12 @@ private struct PendingTerminalText {
         self.content == content
             && self.isURL == isURL
             && self.sourceApp == sourceApp
+    }
+
+    func isConfirmed(content: String, isURL: Bool, sourceApp: String?, timestamp: Date) -> Bool {
+        let elapsed = timestamp.timeIntervalSince(self.timestamp)
+        return matches(content: content, isURL: isURL, sourceApp: sourceApp)
+            && elapsed >= 0
+            && elapsed <= TerminalClipboardTextConfirmation.confirmationWindow
     }
 }

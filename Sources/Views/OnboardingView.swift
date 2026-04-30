@@ -1,31 +1,47 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    // This would typically be driven by AppState/TranscriptionService progress
-    @State private var progress: Double = 0.45
-    @State private var isComplete = false
-    
+    @Binding var modelReadyState: AppState.ModelReadyState
+
+    private var progress: Double {
+        switch modelReadyState {
+        case .preparing:
+            return 0.45
+        case .ready:
+            return 1.0
+        case .failed:
+            return 1.0
+        }
+    }
+
+    private var isComplete: Bool {
+        switch modelReadyState {
+        case .preparing:
+            return false
+        case .ready, .failed:
+            return true
+        }
+    }
+
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "brain.head.profile")
                 .font(.system(size: 48))
                 .foregroundColor(.dzPrimary)
-                // Subtle glow effect
                 .shadow(color: Color.dzPrimary.opacity(0.6), radius: 15)
                 .padding(.bottom, 8)
-            
+
             Text("Yerel Yapay Zeka Hazırlanıyor")
                 .font(.system(size: 24, weight: .semibold, design: .rounded))
                 .foregroundColor(.dzTextPrimary)
-            
+
             VStack(spacing: 12) {
-                // Custom progress bar to match PRD
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.white.opacity(0.1))
                             .frame(height: 8)
-                        
+
                         RoundedRectangle(cornerRadius: 4)
                             .fill(LinearGradient(colors: [.dzPrimary, .dzGradientAccent], startPoint: .leading, endPoint: .trailing))
                             .frame(width: geo.size.width * progress, height: 8)
@@ -33,13 +49,13 @@ struct OnboardingView: View {
                     }
                 }
                 .frame(height: 8)
-                
-                Text(isComplete ? "Model başarıyla yüklendi." : "İndiriliyor: Whisper-Large-Turbo (420 MB / 954 MB)")
+
+                Text(statusText)
                     .font(.dzSmallText())
                     .foregroundColor(.dzTextMuted)
             }
             .padding(.horizontal, 40)
-            
+
             if isComplete {
                 Button(action: {
                     // Close onboarding / finish setup
@@ -53,7 +69,6 @@ struct OnboardingView: View {
                 .controlSize(.large)
                 .transition(.opacity.combined(with: .scale))
             } else {
-                // Invisible placeholder to keep height stable
                 Button("Hidden") {}
                     .controlSize(.large)
                     .opacity(0)
@@ -61,21 +76,36 @@ struct OnboardingView: View {
         }
         .padding(32)
         .frame(width: 480, height: 320)
-        // Simulated completion for preview
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                progress = 1.0
-                withAnimation(.easeIn(duration: 0.3).delay(0.5)) {
-                    isComplete = true
-                }
-            }
+    }
+
+    private var statusText: String {
+        switch modelReadyState {
+        case .preparing:
+            return "İndiriliyor: Whisper-Large-Turbo (420 MB / 954 MB)"
+        case .ready:
+            return "Model başarıyla yüklendi."
+        case .failed(let message):
+            return "Model hazırlanamadı: \(message)"
         }
     }
 }
 
-#Preview {
-    OnboardingView()
-        // Wrapped in glass panel for preview
+#Preview("Preparing") {
+    OnboardingView(modelReadyState: .constant(.preparing))
+        .glassPanel()
+        .padding()
+        .background(Color.black.opacity(0.8))
+}
+
+#Preview("Ready") {
+    OnboardingView(modelReadyState: .constant(.ready))
+        .glassPanel()
+        .padding()
+        .background(Color.black.opacity(0.8))
+}
+
+#Preview("Failed") {
+    OnboardingView(modelReadyState: .constant(.failed("Disk dolu")))
         .glassPanel()
         .padding()
         .background(Color.black.opacity(0.8))
