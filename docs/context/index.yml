@@ -67,7 +67,6 @@ tasks:
     - DKT-TASK-0001
   backlog:
     - DKT-TASK-0006
-    - DKT-TASK-0009
   completed:
     - DKT-TASK-0004
     - DKT-TASK-0007

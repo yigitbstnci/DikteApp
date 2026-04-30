@@ -20,7 +20,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Enhanced transcription logging includes: `total_elapsed_s`, `decode_elapsed_s`, `primary_elapsed_s`, `fallback_elapsed_s`, `model_wait_elapsed_s`, `rtf` (real-time factor).
 - Audio normalization to 16kHz mono is now implemented in TranscriptionService.
 - HUD model readiness: floating HUD shows model preparation state (preparing/ready/failed) on app launch; `Model Ready` card appears when idle.
-- Settings persistence: transcription provider, WhisperKit model, and dictation language are persisted via `AppSettings` + `UserDefaults`. Model changes trigger local model preparation; selected language is passed to `TranscriptionService` during transcription. Faster-Whisper is listed but disabled.
+- Settings persistence: WhisperKit model and dictation language are persisted via `AppSettings` + `UserDefaults`. Model changes trigger local model preparation; selected language is passed to `TranscriptionService` during transcription.
 
 ## Known Gaps
 

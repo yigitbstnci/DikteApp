@@ -11,7 +11,6 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 shortcutSection
-                providerSection
                 modelSection
                 languageSection
             }
@@ -37,37 +36,11 @@ struct SettingsView: View {
         }
     }
 
-    private var providerSection: some View {
-        GroupBox("Sağlayıcı") {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Label(TranscriptionProvider.whisperKit.displayName, systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text("Aktif")
-                        .font(.dzSmallText())
-                        .foregroundStyle(.green)
-                }
-
-                HStack {
-                    Label(TranscriptionProvider.fasterWhisper.displayName, systemImage: "circle")
-                    Spacer()
-                    Text("Yakında")
-                        .font(.dzSmallText())
-                }
-                .foregroundStyle(.secondary)
-                .opacity(0.65)
-            }
-            .font(.dzButtonText())
-            .padding(.vertical, 4)
-        }
-    }
-
     private var modelSection: some View {
         GroupBox("Model") {
             VStack(alignment: .leading, spacing: 8) {
                 Picker("Model", selection: modelBinding) {
-                    ForEach(WhisperModel.models(for: .whisperKit)) { model in
+                    ForEach(WhisperModel.availableModels) { model in
                         Text("\(model.displayName) (\(model.approxSizeMB) MB)")
                             .tag(model.id)
                     }

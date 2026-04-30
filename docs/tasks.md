@@ -16,12 +16,6 @@ No active tasks are currently recorded.
 
 ## Backlog
 
-### DKT-TASK-0009: Evaluate `faster-whisper` As A Separate Transcription Path
-
-- Status: Backlog
-- Goal: Run a low-urgency spike to evaluate whether the current transcription path can be mirrored with `faster-whisper` for better throughput without destabilizing the working app flow.
-- Notes: Keep the current production path as default; compare speed, integration cost, and output quality against [SYSTRAN/faster-whisper](https://github.com/SYSTRAN/faster-whisper). Faster-Whisper is listed in settings UI but disabled.
-
 ### DKT-TASK-0006: Wire Onboarding Into First Launch
 
 - Status: In Progress (partial)
@@ -35,7 +29,7 @@ No active tasks are currently recorded.
 
 - Status: Completed
 - Goal: Persist real settings for options currently represented by `.constant(...)` bindings.
-- Details: `AppSettings` model added with `TranscriptionProvider`, `WhisperModel`, `DictationLanguage` enums and `UserDefaults` persistence. The menu bar now opens a SwiftUI panel with an embedded settings tab and `KeyboardShortcuts.Recorder`; model/language settings are live bindings with disabled states during recording/processing. Faster-Whisper is visible but disabled.
+- Details: `AppSettings` model added with `WhisperModel`, `DictationLanguage` settings and `UserDefaults` persistence. The menu bar now opens a SwiftUI panel with an embedded settings tab and `KeyboardShortcuts.Recorder`; model/language settings are live bindings with disabled states during recording/processing.
 - Date: 2026-04-30
 
 ### DKT-TASK-0008: Audio Optimization and Transcription Speed

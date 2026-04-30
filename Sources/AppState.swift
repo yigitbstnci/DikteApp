@@ -86,25 +86,9 @@ final class AppState {
         !isRecording && !isProcessing
     }
 
-    func setTranscriptionProvider(_ provider: TranscriptionProvider) {
-        guard canChangeTranscriptionSettings, provider.isAvailable else { return }
-
-        let oldModelName = settings.selectedModel.name
-        settings.transcriptionProvider = provider
-
-        if !settings.availableModelsForSelectedProvider.contains(where: { $0.id == settings.whisperModelID }) {
-            settings.whisperModelID = WhisperModel.defaultModel.id
-        }
-
-        if settings.selectedModel.name != oldModelName {
-            prepareSelectedModel()
-        }
-    }
-
     func setWhisperModelID(_ modelID: String) {
         guard canChangeTranscriptionSettings,
               let model = WhisperModel.model(for: modelID),
-              model.requiredProvider == settings.transcriptionProvider,
               model.id != settings.whisperModelID else {
             return
         }
