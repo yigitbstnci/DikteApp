@@ -55,6 +55,7 @@ struct DictationLanguage: Identifiable, Hashable, Sendable {
         DictationLanguage(id: "de", code: "de", displayName: "Almanca"),
         DictationLanguage(id: "fr", code: "fr", displayName: "Fransızca"),
         DictationLanguage(id: "es", code: "es", displayName: "İspanyolca"),
+        DictationLanguage(id: "ar", code: "ar", displayName: "Arapça"),
     ]
 
     static func language(for code: String) -> DictationLanguage? {
