@@ -1,58 +1,48 @@
 # Dikte Agent Notes
 
-## Project Snapshot
+## Start Here
 
-Dikte is a native macOS menu bar app for privacy-first dictation with clipboard context. It records audio locally, captures clipboard changes during recording, transcribes with WhisperKit, merges speech with copied context, and writes Markdown output back to the clipboard.
+- Run `make context-load` before work; then read `docs/current-state.md` and `docs/tasks.md`. Use `docs/architecture.md` or `docs/decisions.md` when behavior or workflow is unclear.
+- `project.yml` is the Xcode source of truth. `Dikte.xcodeproj/` is generated and ignored; use `xcodegen generate` or Make targets, never hand-edit project files.
+- Dikte is a macOS 15 SwiftUI menu bar app (`Sources/DikteApp.swift`) with `AppState` coordinating recording, clipboard capture, local WhisperKit transcription, merge, clipboard output, and HUD state.
 
-## Working Rules
+## Commands
 
-- Treat `project.yml` as the project source of truth. Regenerate `Dikte.xcodeproj` with `xcodegen generate`; do not hand-edit generated project files.
-- Keep changes scoped to the requested behavior and prefer existing native macOS / SwiftUI patterns.
-- Preserve the local-first model. Do not add network transcription, telemetry, or remote dependencies without explicit approval.
-- Be careful around microphone permissions, pasteboard access, sandbox settings, and model download behavior.
+- Toolchain: XcodeGen >= 2.38.0, Xcode 16 project settings, Swift 5.9, macOS 15 deployment target.
+- Install setup dependency with `brew install xcodegen` before build/test commands.
+- Generate project: `make generate`.
+- Debug app: `make run` stops any running Dikte, regenerates/builds, launches via `open -n`, clears/tails `~/Library/Logs/Dikte/dikte.log`, and kills the app on Ctrl-C.
+- Stop app: `make stop`.
+- Full tests: `make test`.
+- Focused test class: `xcodegen generate && xcodebuild -quiet -project Dikte.xcodeproj -scheme Dikte -destination 'platform=macOS' -only-testing:DikteTests/MergerServiceTests test`. Append `/testMethodName` for one test method.
+- Full verification: `make verify` runs `make context-check` then `make test`.
+- Docs/instruction-only changes usually need `make context-check`; skip app build/tests unless scripts, project config, or code changed.
 
-## Context Workflow
+## Runtime Invariants
 
-At session start:
+- Preserve local-first behavior. Do not add network transcription, telemetry, or remote dependencies without explicit approval.
+- WhisperKit uses `openai_whisper-large-v3_turbo`; first real app run may download ~954 MB into `~/Library/Application Support/Dikte/Models`.
+- `AppState.init()` preloads the model and shows the HUD outside tests; `XCTestConfigurationFilePath` detection avoids model downloads and GUI side effects in tests.
+- App sandbox is disabled in `Resources/Dikte.entitlements`, microphone entitlement is enabled, and `Resources/Info.plist` sets `LSUIElement=true`; change these only deliberately.
+- `ClipboardMonitorService` polls `NSPasteboard.general.changeCount` every `0.3` seconds during recording and stores artifacts in `~/Library/Application Support/Dikte/ClipboardAssets`.
+- Terminal-like apps (`ghostty`, `terminal`, `iterm`, `warp`, `kitty`, `wezterm`, `alacritty`) hold text pending until copy-like repetition; keep regression coverage if this changes.
+- `TranscriptionService` decodes Turkish (`language: "tr"`), normalizes audio to 16 kHz mono when needed, and only enables `wordTimestamps` when clipboard items exist.
+- Output format is speech with superscript inline markers plus an `Attachments` footer; see `Sources/Services/MergerService.swift` and `Tests/Integration/OutputFormatTests.swift`.
+- Runtime logs live at `~/Library/Logs/Dikte/dikte.log`; log counts, durations, sizes, sources, and cache state, never raw transcript or clipboard text.
 
-1. Run `make context-load`.
-2. Read `docs/current-state.md` and `docs/tasks.md` first.
-3. Read `docs/decisions.md` or `docs/architecture.md` only when the task needs deeper historical or structural context.
+## Key Files
 
-Before ending meaningful work:
+- `Sources/AppState.swift`: recording/transcription/merge/clipboard/HUD coordinator.
+- `Sources/Services/AudioRecorderService.swift`: microphone capture and temporary WAV creation.
+- `Sources/Services/ClipboardMonitorService.swift`: pasteboard polling, source-app detection, asset persistence.
+- `Sources/Services/TranscriptionService.swift`: WhisperKit load/cache, audio normalization, fallback decode, transcript cleanup.
+- `Sources/Services/MergerService.swift`: timestamp-based output composition and attachment markers.
+- `Sources/Views/`: menu bar, floating HUD, settings, and onboarding surfaces.
 
-1. Update `docs/current-state.md`, `docs/tasks.md`, or `docs/decisions.md` when repo facts changed.
-2. Add a concise session summary with `make context-save SUMMARY=/path/to/session.md TITLE="short-title"` when the work represents a meaningful development block.
-3. Keep `docs/context/index.yml` aligned with session, task, and decision IDs/status.
-4. Run `make context-check`, or `make verify` when code or tests changed.
+## Context Updates
 
-Committed context must stay distilled. Do not commit raw conversations, secrets, clipboard contents, dictated transcript text, or full runtime logs.
-
-## Common Commands
-
-```bash
-make run
-make test
-make stop
-make context-load
-make context-save SUMMARY=/path/to/session.md TITLE="short-title"
-make context-check
-make verify
-```
-
-Use `make run` as the default debug path. It launches the built app via LaunchServices and tails `~/Library/Logs/Dikte/dikte.log`.
-
-## Important Files
-
-- `Sources/AppState.swift`: recording, transcription, merge, clipboard, and HUD coordination.
-- `Sources/Services/TranscriptionService.swift`: WhisperKit load/transcribe path and transcript cleanup.
-- `Sources/Services/ClipboardMonitorService.swift`: pasteboard polling and clipboard artifact capture.
-- `Sources/Views/`: menu bar UI, floating HUD, settings, and onboarding surfaces.
-- `docs/current-state.md`: live repo snapshot.
-- `docs/tasks.md`: active, ongoing, backlog, and compact completed task index.
-
-## Output And Test Rules
-
-- Output format uses inline superscript attachment markers and an `Attachments` list.
-- If a feature needs tests, open a concrete task in `docs/tasks.md`; `make test` must stay green.
-- Tests must not require Whisper model downloads, microphone permissions, or GUI-driven app launch.
+- Keep `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and `docs/context/index.yml` aligned when repo facts, tasks, or decisions change.
+- If feature work needs tests that are not added immediately, open a concrete task in `docs/tasks.md`; `make test` must stay green.
+- Tests must stay headless: no Whisper model downloads, microphone permission prompts, or GUI-driven app launches.
+- Use `make context-save SUMMARY=/path/to/session.md TITLE="short-title"` only for meaningful development summaries.
+- Committed context must not include raw conversations, secrets, clipboard contents, dictated transcript text, or raw runtime logs.
