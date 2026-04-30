@@ -7,23 +7,23 @@ actor TranscriptionService {
 
     private var whisperKit: WhisperKit?
     private var loadingTask: Task<WhisperKit, Error>?
-
-    private static let modelName = "openai_whisper-large-v3_turbo"
-
-    private static let modelStorageDir: URL = {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        return appSupport.appendingPathComponent("Dikte/Models", isDirectory: true)
-    }()
+    private var loadedModelName: String?
 
     private static let normalizedSampleRate: Double = 16000
     private static let normalizedChannels: AVAudioChannelCount = 1
 
-    func preload() async throws {
-        _ = try await loadWhisperKit()
+    func preload(modelName: String) async throws {
+        _ = try await loadWhisperKit(modelName: modelName)
     }
 
-    func transcribe(audioFileURL: URL, requiresWordTimestamps: Bool, sessionID: String? = nil) async throws -> [TranscriptSegment] {
-        let whisper = try await loadWhisperKit(sessionID: sessionID)
+    func transcribe(
+        audioFileURL: URL,
+        modelName: String,
+        language: String,
+        requiresWordTimestamps: Bool,
+        sessionID: String? = nil
+    ) async throws -> [TranscriptSegment] {
+        let whisper = try await loadWhisperKit(modelName: modelName)
         let audioDuration = Self.audioDuration(of: audioFileURL)
         let byteCount = Self.fileSize(of: audioFileURL)
 
@@ -34,13 +34,13 @@ actor TranscriptionService {
         let prepElapsed = Date().timeIntervalSince(prepStart)
 
         let primaryOptions = DecodingOptions(
-            language: "tr",
+            language: language,
             wordTimestamps: requiresWordTimestamps,
             suppressBlank: false
         )
 
         let fallbackOptions = DecodingOptions(
-            language: "tr",
+            language: language,
             wordTimestamps: false,
             suppressBlank: false,
             firstTokenLogProbThreshold: nil,
@@ -51,7 +51,8 @@ actor TranscriptionService {
             "audio_duration_s": String(format: "%.2f", audioDuration),
             "bytes": byteCount,
             "file": audioFileURL.lastPathComponent,
-            "language": "tr",
+            "language": language,
+            "model": modelName,
             "word_timestamps": requiresWordTimestamps,
             "audio_normalized": didNormalize,
             "source_sample_rate_hz": Int(sourceFormat.sampleRate),
@@ -269,8 +270,13 @@ actor TranscriptionService {
 
     // MARK: - Model Loading
 
-    private func loadWhisperKit(sessionID: String? = nil) async throws -> WhisperKit {
-        if let whisperKit {
+    private static let modelStorageDir: URL = {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport.appendingPathComponent("Dikte/Models", isDirectory: true)
+    }()
+
+    private func loadWhisperKit(modelName: String) async throws -> WhisperKit {
+        if let whisperKit, loadedModelName == modelName {
             return whisperKit
         }
 
@@ -279,13 +285,14 @@ actor TranscriptionService {
         }
 
         let task = Task {
-            try await Self.makeWhisperKit(sessionID: sessionID)
+            try await Self.makeWhisperKit(modelName: modelName)
         }
         loadingTask = task
 
         do {
             let loaded = try await task.value
             whisperKit = loaded
+            loadedModelName = modelName
             loadingTask = nil
             return loaded
         } catch {
@@ -294,12 +301,18 @@ actor TranscriptionService {
         }
     }
 
-    private static func makeWhisperKit(sessionID: String? = nil) async throws -> WhisperKit {
+    func reloadModel(modelName: String) async throws {
+        whisperKit = nil
+        loadedModelName = nil
+        _ = try await loadWhisperKit(modelName: modelName)
+    }
+
+    private static func makeWhisperKit(modelName: String, sessionID: String? = nil) async throws -> WhisperKit {
         let modelDir = modelStorageDir
         try FileManager.default.createDirectory(at: modelDir, withIntermediateDirectories: true)
 
-        let cachedFolder = cachedModelFolder(in: modelDir)
-        DikteLog.action("stt", "model.load", cachedFolder == nil ? "Model indiriliyor (~954 MB)." : "Model cache'den yükleniyor.", metadata: DikteLog.metadata([
+        let cachedFolder = cachedModelFolder(in: modelDir, modelName: modelName)
+        DikteLog.action("stt", "model.load", cachedFolder == nil ? "Model indiriliyor." : "Model cache'den yükleniyor.", metadata: DikteLog.metadata([
             "cache_hit": cachedFolder != nil,
             "model": modelName,
             "model_dir": modelDir.path
@@ -324,7 +337,7 @@ actor TranscriptionService {
         return kit
     }
 
-    static func cachedModelFolder(in modelDir: URL) -> URL? {
+    static func cachedModelFolder(in modelDir: URL, modelName: String) -> URL? {
         let candidates = [
             modelDir.appendingPathComponent("models/argmaxinc/whisperkit-coreml/\(modelName)", isDirectory: true),
             modelDir.appendingPathComponent(modelName, isDirectory: true),

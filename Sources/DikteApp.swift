@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import KeyboardShortcuts
 
 /// Dikte — Menu Bar only macOS app.
 /// LSUIElement = true in Info.plist hides the Dock icon.
@@ -24,7 +23,7 @@ struct DikteApp: App {
                     appState.isRecording ? .red : .secondary
                 )
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
         .onChange(of: appState.isRecording) { _, isRecording in
             if isRecording {
                 FloatingHUDManager.shared.showHUD(appState: appState)
@@ -60,12 +59,6 @@ struct DikteApp: App {
             if newError != nil {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }
-        }
-
-        // Settings window for keyboard shortcut configuration
-        Settings {
-            SettingsView()
-                .environment(appState)
         }
     }
 }

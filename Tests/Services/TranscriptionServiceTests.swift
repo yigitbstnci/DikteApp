@@ -11,7 +11,7 @@ final class TranscriptionServiceTests: XCTestCase {
         )
         try createUsableModelFolder(at: modelFolder)
 
-        XCTAssertEqual(TranscriptionService.cachedModelFolder(in: root), modelFolder)
+        XCTAssertEqual(TranscriptionService.cachedModelFolder(in: root, modelName: "openai_whisper-large-v3_turbo"), modelFolder)
     }
 
     func testCachedModelFolderIgnoresIncompleteModelFolder() throws {
@@ -23,7 +23,7 @@ final class TranscriptionServiceTests: XCTestCase {
         try FileManager.default.createDirectory(at: modelFolder, withIntermediateDirectories: true)
         try Data().write(to: modelFolder.appendingPathComponent("config.json"))
 
-        XCTAssertNil(TranscriptionService.cachedModelFolder(in: root))
+        XCTAssertNil(TranscriptionService.cachedModelFolder(in: root, modelName: "openai_whisper-large-v3_turbo"))
     }
 
     // MARK: - Text Cleaning Tests

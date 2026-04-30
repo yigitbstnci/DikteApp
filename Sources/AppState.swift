@@ -19,6 +19,9 @@ extension KeyboardShortcuts.Name {
 @Observable
 final class AppState {
 
+    // MARK: Settings
+    let settings = AppSettings()
+
     // MARK: Recording state
     var isRecording = false
     var recordingDuration: TimeInterval = 0
@@ -65,18 +68,7 @@ final class AppState {
         // XCTest launches the app target as a test host; avoid model downloads there.
         if !Self.isRunningTests {
             FloatingHUDManager.shared.showHUD(appState: self)
-            Task {
-                do {
-                    try await transcriptionService.preload()
-                    await MainActor.run {
-                        self.modelReadyState = .ready
-                    }
-                } catch {
-                    await MainActor.run {
-                        self.modelReadyState = .failed(error.localizedDescription)
-                    }
-                }
-            }
+            prepareSelectedModel(reloadExisting: false)
         }
     }
 
@@ -88,6 +80,46 @@ final class AppState {
         } else {
             startRecording()
         }
+    }
+
+    var canChangeTranscriptionSettings: Bool {
+        !isRecording && !isProcessing
+    }
+
+    func setTranscriptionProvider(_ provider: TranscriptionProvider) {
+        guard canChangeTranscriptionSettings, provider.isAvailable else { return }
+
+        let oldModelName = settings.selectedModel.name
+        settings.transcriptionProvider = provider
+
+        if !settings.availableModelsForSelectedProvider.contains(where: { $0.id == settings.whisperModelID }) {
+            settings.whisperModelID = WhisperModel.defaultModel.id
+        }
+
+        if settings.selectedModel.name != oldModelName {
+            prepareSelectedModel()
+        }
+    }
+
+    func setWhisperModelID(_ modelID: String) {
+        guard canChangeTranscriptionSettings,
+              let model = WhisperModel.model(for: modelID),
+              model.requiredProvider == settings.transcriptionProvider,
+              model.id != settings.whisperModelID else {
+            return
+        }
+
+        settings.whisperModelID = model.id
+        prepareSelectedModel()
+    }
+
+    func setDictationLanguageCode(_ code: String) {
+        guard canChangeTranscriptionSettings,
+              DictationLanguage.language(for: code) != nil else {
+            return
+        }
+
+        settings.dictationLanguageCode = code
     }
 
     func startRecording() {
@@ -188,6 +220,8 @@ final class AppState {
                 let requiresWordTimestamps = !clipboardItems.isEmpty
                 let segments = try await transcriptionService.transcribe(
                     audioFileURL: audioURL,
+                    modelName: settings.selectedModel.name,
+                    language: settings.selectedLanguage.code,
                     requiresWordTimestamps: requiresWordTimestamps,
                     sessionID: sessionID
                 )
@@ -249,6 +283,36 @@ final class AppState {
     func releaseAudioRouting() {
         outputSilenceService.restore(sessionID: activeRecordingID)
         audioInputRouteService.restoreDefaultInput(sessionID: activeRecordingID)
+    }
+
+    private func prepareSelectedModel(reloadExisting: Bool = true) {
+        guard !Self.isRunningTests else { return }
+
+        modelReadyState = .preparing
+        FloatingHUDManager.shared.showHUD(appState: self)
+
+        let modelName = settings.selectedModel.name
+        Task {
+            do {
+                if reloadExisting {
+                    try await transcriptionService.reloadModel(modelName: modelName)
+                } else {
+                    try await transcriptionService.preload(modelName: modelName)
+                }
+
+                await MainActor.run {
+                    if self.settings.selectedModel.name == modelName {
+                        self.modelReadyState = .ready
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    if self.settings.selectedModel.name == modelName {
+                        self.modelReadyState = .failed(error.localizedDescription)
+                    }
+                }
+            }
+        }
     }
 
     func copyOutputToClipboard(sessionID: String? = nil) {

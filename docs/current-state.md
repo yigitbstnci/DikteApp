@@ -11,7 +11,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - `project.yml` drives the generated Xcode project.
 - `make run` is the default debug path, launches the built `.app` through LaunchServices, and stops its terminal log stream when the Dikte process exits.
 - `make test` runs the unit-test scheme.
-- The menu bar icon opens a native dropdown menu for recording, clipboard status, settings, and quit actions.
+- The menu bar icon opens a SwiftUI panel with `Kayıt`, `Pano`, and `Ayarlar` tabs; the settings tab hosts the shortcut recorder directly.
 - Structured logs are written to `~/Library/Logs/Dikte/dikte.log` with session correlation IDs and key-value diagnostic metadata.
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.
@@ -20,10 +20,10 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - Enhanced transcription logging includes: `total_elapsed_s`, `decode_elapsed_s`, `primary_elapsed_s`, `fallback_elapsed_s`, `model_wait_elapsed_s`, `rtf` (real-time factor).
 - Audio normalization to 16kHz mono is now implemented in TranscriptionService.
 - HUD model readiness: floating HUD shows model preparation state (preparing/ready/failed) on app launch; `Model Ready` card appears when idle.
+- Settings persistence: transcription provider, WhisperKit model, and dictation language are persisted via `AppSettings` + `UserDefaults`. Model changes trigger local model preparation; selected language is passed to `TranscriptionService` during transcription. Faster-Whisper is listed but disabled.
 
 ## Known Gaps
 
-- Settings UI still contains placeholder `.constant(...)` bindings for several options.
 - HUD shows model readiness on launch; `OnboardingView` is wired to `AppState.modelReadyState` but its standalone first-launch window flow is not yet implemented.
 - Test coverage is still narrow around app lifecycle, live audio routing, pasteboard integration, and UI behavior.
 - Documentation must stay aligned with implementation details such as polling interval, decode options, and model name.
