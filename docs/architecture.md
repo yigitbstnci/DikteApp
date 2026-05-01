@@ -19,7 +19,10 @@ Dikte is a native macOS menu bar app for context-aware dictation.
 - `Sources/Services/AudioRecorderService.swift`: `AVAudioEngine` capture, WAV persistence, and signal metrics.
 - `Sources/Services/ClipboardMonitorService.swift`: clipboard polling, source-app detection, and asset persistence.
 - `Sources/Services/TranscriptionService.swift`: WhisperKit model load, audio normalization, fallback decode path, and transcript cleanup.
-- `Sources/Services/MergerService.swift`: transcript-plus-clipboard merge logic.
+- `Sources/Services/MergerService.swift`: timestamp-based output composition with `[focus-context N]` markers.
+- `Sources/Services/HistoryStore.swift`: JSON persistence of history entries under `~/Library/Application Support/Dikte/History`.
+- `Sources/Views/HistoryView.swift`: resizable history window with searchable detail panel, colored focus-context markers, and attachment hover popovers.
+- `Sources/Views/HistoryWindowManager.swift`: NSWindow opener/closer with autosave and app termination guard.
 - `Sources/Services/DikteLog.swift`: structured local logs with per-recording session IDs.
 - `Sources/Views/`: menu bar controls, floating HUD, and settings surfaces.
 
@@ -32,9 +35,11 @@ Dikte is a native macOS menu bar app for context-aware dictation.
 - Word timestamps are enabled when clipboard items exist; fallback decode can run without them.
 - Transcript cleanup removes Whisper special tokens and known trailing hallucination patterns.
 - Logs must not contain raw transcript text or clipboard text.
+- History window is resizable with autosave; `⌘W` closes history without quitting the app via `AppDelegate.applicationShouldTerminateAfterLastWindowClosed = false`.
 
 ## Runtime Storage
 
+- History: `~/Library/Application Support/Dikte/History/history.json`
 - Whisper models: `~/Library/Application Support/Dikte/Models`
 - Clipboard assets: `~/Library/Application Support/Dikte/ClipboardAssets`
 - Structured logs: `~/Library/Logs/Dikte/dikte.log`

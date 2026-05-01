@@ -35,7 +35,7 @@
 - `ClipboardMonitorService` polls `NSPasteboard.general.changeCount` every `0.3` seconds during recording and stores artifacts in `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Terminal-like apps (`ghostty`, `terminal`, `iterm`, `warp`, `kitty`, `wezterm`, `alacritty`) hold text pending until copy-like repetition; keep regression coverage if this changes.
 - `TranscriptionService` decodes Turkish (`language: "tr"`), normalizes audio to 16 kHz mono when needed, and only enables `wordTimestamps` when clipboard items exist.
-- Output format is speech with superscript inline markers plus an `Attachments` footer; see `Sources/Services/MergerService.swift` and `Tests/Integration/OutputFormatTests.swift`.
+- Output format is speech with `[focus-context ¹]` inline markers plus an `Attachments [each file = ...]` footer; see `Sources/Services/MergerService.swift` and `Tests/Integration/OutputFormatTests.swift`.
 - Runtime logs live at `~/Library/Logs/Dikte/dikte.log`; log counts, durations, sizes, sources, and cache state, never raw transcript or clipboard text.
 
 ## Key Files

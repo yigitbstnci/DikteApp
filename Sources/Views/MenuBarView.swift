@@ -27,6 +27,12 @@ struct MenuBarView: View {
         }
 
         Menu {
+            historyItems
+        } label: {
+            Label("Geçmiş", systemImage: "clock.arrow.circlepath")
+        }
+
+        Menu {
             settingsItems
         } label: {
             Label("Ayarlar", systemImage: "gearshape")
@@ -82,6 +88,17 @@ struct MenuBarView: View {
         } else {
             Text("Son oturum yok")
         }
+    }
+
+    @ViewBuilder
+    private var historyItems: some View {
+        Button(action: {
+            HistoryWindowManager.shared.showWindow(appState: appState)
+        }) {
+            Label("Geçmiş", systemImage: "clock.arrow.circlepath")
+        }
+
+        Divider()
     }
 
     @ViewBuilder

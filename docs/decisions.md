@@ -50,3 +50,10 @@ This file records durable workflow and architecture decisions. Keep entries shor
 - Status: Accepted
 - Decision: Every feature change must be evaluated for test impact; if tests are needed, a concrete test task must be added to `docs/tasks.md`.
 - Consequence: `make test` must stay green, and tests must not require model downloads, microphone permissions, or GUI-driven launch.
+
+## DKT-ADR-0008: History Stores Transcript/Output/Clipboard Metadata, Not Audio
+
+- Date: 2026-05-01
+- Status: Accepted
+- Decision: History persists `mergedOutput`, `transcriptSegments`, and `clipboardItems` as JSON; audio files are deleted after transcription.
+- Consequence: Memory savings; no audio stored; transcript + clipboard context preserved for review.

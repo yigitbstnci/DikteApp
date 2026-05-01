@@ -45,14 +45,14 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        let annotationPattern = "[²¹]"
+        let annotationPattern = "\\[focus-context [¹²]\\]"
         let annotationRange = output.range(of: annotationPattern, options: .regularExpression)
         XCTAssertNotNil(annotationRange)
     }
 
-    // MARK: - Superscript Format Tests
+    // MARK: - Focus-Context Format Tests
 
-    func testMergedOutputSuperscriptsAreMonotonic() {
+    func testMergedOutputFocusContextMarkersAreMonotonic() {
         let segments = [
             segment("First.", start: 0, end: 1),
             segment("Second.", start: 2, end: 3)
@@ -69,8 +69,9 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        let superscriptChars = output.filter { "⁰¹²³⁴⁵⁶⁷⁸⁹".contains($0) }
-        XCTAssertEqual(superscriptChars, "¹²³", "Superscripts should appear in order ¹²³")
+        XCTAssertTrue(output.contains("[focus-context ¹]"), "[focus-context ¹] appears once inline")
+        XCTAssertTrue(output.contains("[focus-context ²]"), "[focus-context ²] appears once inline")
+        XCTAssertTrue(output.contains("[focus-context ³]"), "[focus-context ³] appears once inline")
     }
 
     func testMergedOutputAnnotationCountMatchesClipboardItems() {
@@ -88,10 +89,8 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        let superscriptOnes = output.filter { $0 == "¹" }
-        let superscriptTwos = output.filter { $0 == "²" }
-        XCTAssertEqual(superscriptOnes.count, 1, "¹ appears once inline")
-        XCTAssertEqual(superscriptTwos.count, 1, "² appears once inline")
+        XCTAssertTrue(output.contains("[focus-context ¹]"), "inline annotation ¹ appears")
+        XCTAssertTrue(output.contains("[focus-context ²]"), "inline annotation ² appears")
         XCTAssertTrue(output.contains("1  /tmp/a.txt"), "Attachment section uses regular numbers")
         XCTAssertTrue(output.contains("2  /tmp/b.txt"), "Attachment section uses regular numbers")
     }
@@ -115,7 +114,7 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        XCTAssertTrue(output.contains("Attachments"), "Output should contain Attachments section")
+        XCTAssertTrue(output.contains("Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]"), "Output should contain formatted attachments header")
         XCTAssertTrue(output.contains("1  /tmp/test.txt [TestApp]"), "Output should contain formatted attachment line")
     }
 
@@ -131,7 +130,7 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        XCTAssertTrue(output.contains("\n\nAttachments\n"), "Attachments section should be preceded by double newline")
+        XCTAssertTrue(output.contains("\n\nAttachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"), "Attachments section should be preceded by double newline")
         XCTAssertTrue(output.contains("\n1  /tmp/test.txt"), "Attachment lines should start with newline and index")
     }
 
@@ -165,7 +164,7 @@ final class OutputFormatTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        XCTAssertTrue(output.hasPrefix("Attachments"))
+        XCTAssertTrue(output.hasPrefix("Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]"))
     }
 
     // MARK: - Edge Cases

@@ -45,9 +45,9 @@ final class MergerServiceTests: XCTestCase {
         XCTAssertEqual(
             output,
             """
-            Ilk cumle. ¹ ² Ikinci cumle. ³
+            Ilk cumle. [focus-context ¹] [focus-context ²] Ikinci cumle. [focus-context ³]
 
-            Attachments
+            Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]
 
             1  /tmp/dikte-text.txt [Notes] (11 B)
             2  https://example.com/docs [Safari] (24 B)
@@ -75,7 +75,7 @@ final class MergerServiceTests: XCTestCase {
         XCTAssertEqual(
             output,
             """
-            Attachments
+            Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]
 
             1  /tmp/clipboard.txt [Ghostty] (1 KB)
             """
@@ -124,9 +124,9 @@ final class MergerServiceTests: XCTestCase {
         XCTAssertEqual(
             output,
             """
-            Clipboard oncesi ¹ ve sonrasi
+            Clipboard oncesi [focus-context ¹] ve sonrasi
 
-            Attachments
+            Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]
 
             1  /tmp/copied.txt [Xcode] (6 B)
             """
@@ -160,8 +160,8 @@ final class MergerServiceTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        XCTAssertTrue(output.contains("¹"))
-        XCTAssertTrue(output.contains("²"))
+        XCTAssertTrue(output.contains("[focus-context ¹]"))
+        XCTAssertTrue(output.contains("[focus-context ²]"))
         XCTAssertTrue(output.contains("/tmp/first.txt"))
         XCTAssertTrue(output.contains("/tmp/second.png"))
     }
@@ -193,8 +193,8 @@ final class MergerServiceTests: XCTestCase {
             recordingStartTime: recordingStart
         )
 
-        XCTAssertTrue(output.contains("¹"))
-        XCTAssertTrue(output.contains("²"))
+        XCTAssertTrue(output.contains("[focus-context ¹]"))
+        XCTAssertTrue(output.contains("[focus-context ²]"))
     }
 
     func testMergeHandlesUnsortedClipboardItems() {

@@ -51,6 +51,7 @@ final class AppState {
     let mergerService = MergerService()
     let audioInputRouteService = AudioInputRouteService()
     let outputSilenceService = OutputSilenceService()
+    let historyStore = HistoryStore()
 
     // MARK: Timer
     private var durationTimer: Timer?
@@ -248,6 +249,17 @@ final class AppState {
                         "elapsed_s": Self.formatSeconds(Date().timeIntervalSince(processingStartTime)),
                         "session": sessionID
                     ])
+
+                    let historyEntry = HistoryEntry(
+                        id: UUID(),
+                        date: session.date,
+                        duration: session.duration,
+                        transcriptSegments: session.transcriptSegments,
+                        clipboardItems: session.clipboardItems,
+                        mergedOutput: session.mergedOutput
+                    )
+                    self.historyStore.append(historyEntry)
+                    try? FileManager.default.removeItem(at: audioURL)
                 }
             } catch {
                 await MainActor.run {

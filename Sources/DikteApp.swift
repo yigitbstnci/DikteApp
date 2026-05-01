@@ -6,6 +6,7 @@ import AppKit
 @main
 struct DikteApp: App {
     @State private var appState = AppState()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
         MenuBarExtra {
@@ -15,7 +16,6 @@ struct DikteApp: App {
                     appState.releaseAudioRouting()
                 }
         } label: {
-            // Menu bar icon changes based on recording state
             Image(systemName: appState.isRecording ? "record.circle.fill" : "mic.badge.plus")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(
@@ -60,5 +60,11 @@ struct DikteApp: App {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }
         }
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return false
     }
 }

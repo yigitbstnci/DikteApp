@@ -18,6 +18,12 @@ No active tasks are currently recorded.
 
 ## Completed
 
+### DKT-TASK-0009: Persistent History Screen
+
+- Status: Completed
+- Goal: Add a usable history screen with transcript outputs, focus-context references, and clipboard context.
+- Date: 2026-05-01
+
 ### DKT-TASK-0007: Replace Placeholder Settings Bindings
 
 - Status: Completed

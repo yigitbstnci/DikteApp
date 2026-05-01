@@ -2,6 +2,23 @@
 
 Detailed notes for completed tasks live here so `docs/tasks.md` can stay compact during startup context loading.
 
+## DKT-TASK-0009: Persistent History Screen
+
+- Status: Completed
+- Goal: Add a usable history screen with transcript outputs, focus-context references, and clipboard context.
+- Implementation Details:
+  - `HistoryEntry` model (Identifiable, Codable): id, date, duration, transcriptSegments, clipboardItems, mergedOutput.
+  - `HistoryStore` service: JSON persistence under `~/Library/Application Support/Dikte/History/history.json`, append/delete/clearAll, NotificationCenter posting.
+  - `HistoryView.swift`: left list panel (240px) + right detail panel with search, date/duration, transcript text, colored `[focus-context N]` inline markers via AttributedString, and attachment preview rows.
+  - `HistoryWindowManager`: NSWindow with `.resizable`, `minSize = 680×480`, `setFrameAutosaveName`, `isReleasedWhenClosed = false`, AppDelegate guard so ⌘W doesn't quit app.
+  - Output format changed: `¹` → `[focus-context ¹]`; `Attachments` → `Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]`.
+  - Attachment rows in history UI: colored pill with superscript index (¹, ², ³) and type-based colors (image=purple, url=blue, text=indigo).
+  - Hover popover preview on attachment rows: image thumbnail (420×280) or text/URL preview (340×260 scrollable), plus source app and file size.
+  - `AppState` saves entry after each recording, deletes temp WAV after transcription.
+  - `AppDelegate.applicationShouldTerminateAfterLastWindowClosed = false` in `DikteApp`.
+  - Tests: `HistoryStoreTests` (10 tests: load, append, sorted, delete, clearAll, Codable roundtrip, formatted properties, 3 notification tests).
+- Completed: 2026-05-01
+
 ## DKT-TASK-0008: Audio Optimization and Transcription Speed
 
 - Status: Completed

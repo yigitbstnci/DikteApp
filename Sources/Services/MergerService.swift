@@ -5,11 +5,11 @@ import Foundation
 ///
 /// Example output:
 /// ```
-/// Birkaç problemlerimiz var. Burada şu tarz problemler gelmiş. ¹ Bak şu fotoğraf
-/// içerisine baktığım zaman ² şu birinci kısım. Bu problemi bul, neden
-/// kaynaklanıyormuş çözelim. ³
+/// Birkaç problemlerimiz var. Burada şu tarz problemler gelmiş. [focus-context ¹] Bak şu fotoğraf
+/// içerisine baktığım zaman [focus-context ²] şu birinci kısım. Bu problemi bul, neden
+/// kaynaklanıyormuş çözelim. [focus-context ³]
 ///
-/// Attachments
+/// Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]
 ///
 /// 1  /path/to/file.txt [Ghostty] (4 KB)
 /// 2  /path/to/screenshot.png [CleanShot X] (2252 KB)
@@ -17,7 +17,6 @@ import Foundation
 /// ```
 final class MergerService: Sendable {
 
-    /// Unicode superscript digits for inline annotations
     private static let superscriptDigits: [Character: Character] = [
         "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
         "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹"
@@ -26,6 +25,11 @@ final class MergerService: Sendable {
     /// Converts an integer to its superscript representation (e.g. 12 → "¹²")
     private static func superscript(_ number: Int) -> String {
         String(String(number).map { superscriptDigits[$0] ?? $0 })
+    }
+
+    /// Converts an integer to its inline annotation representation (e.g. 12 → "[focus-context ¹²]")
+    private static func annotationMarker(_ number: Int) -> String {
+        "[focus-context \(superscript(number))]"
     }
 
     /// Merges transcript segments and clipboard items in chronological order.
@@ -43,7 +47,7 @@ final class MergerService: Sendable {
         guard !transcriptSegments.isEmpty else {
             // No speech — just list clipboard items as attachments
             if clipboardItems.isEmpty { return "" }
-            var output = "Attachments\n"
+            var output = "Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
             for (i, item) in clipboardItems.enumerated() {
                 output += "\n" + item.attachmentLine(index: i + 1)
             }
@@ -61,7 +65,7 @@ final class MergerService: Sendable {
         let transcriptPieces = Self.makeTranscriptPieces(from: transcriptSegments)
         guard !transcriptPieces.isEmpty else {
             if clipboardItems.isEmpty { return "" }
-            var output = "Attachments\n"
+            var output = "Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
             for (i, item) in clipboardItems.enumerated() {
                 output += "\n" + item.attachmentLine(index: i + 1)
             }
@@ -77,7 +81,7 @@ final class MergerService: Sendable {
         func appendAnnotation(for item: ClipboardItem) {
             annotationCounter += 1
             attachments.append((annotationCounter, item))
-            Self.appendAnnotationMarker(Self.superscript(annotationCounter), to: &textParts)
+            Self.appendAnnotationMarker(Self.annotationMarker(annotationCounter), to: &textParts)
         }
 
         for piece in transcriptPieces {
@@ -117,7 +121,7 @@ final class MergerService: Sendable {
 
         // Add Attachments section if there are any
         if !attachments.isEmpty {
-            output += "\n\nAttachments\n"
+            output += "\n\nAttachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
             for (index, item) in attachments {
                 output += "\n" + item.attachmentLine(index: index)
             }

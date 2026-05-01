@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-04-30"
+updated_at: "2026-05-01"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-05-01-history-focus-context
+    date: "2026-05-01"
+    title: "history focus context"
+    path: docs/context/sessions/2026-05-01-history-focus-context.md
+    status: active
   - id: 2026-04-29-transcription-speed-optimization
     date: "2026-04-29"
     title: "transcription speed optimization"
@@ -56,6 +61,7 @@ decisions:
   - DKT-ADR-0005
   - DKT-ADR-0006
   - DKT-ADR-0007
+  - DKT-ADR-0008
 tasks:
   active: []
   ongoing:
@@ -65,3 +71,4 @@ tasks:
     - DKT-TASK-0004
     - DKT-TASK-0007
     - DKT-TASK-0008
+    - DKT-TASK-0009

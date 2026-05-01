@@ -1,7 +1,7 @@
 import Foundation
 
 /// A single segment from the speech-to-text transcription with timing info.
-struct TranscriptSegment: Identifiable, Sendable {
+struct TranscriptSegment: Identifiable, Sendable, Codable {
     let id: UUID
     let text: String
     let startTime: TimeInterval   // seconds from start of recording
@@ -24,7 +24,7 @@ struct TranscriptSegment: Identifiable, Sendable {
 }
 
 /// A word-level transcript item, used to place clipboard markers more accurately.
-struct TranscriptWord: Sendable {
+struct TranscriptWord: Sendable, Codable {
     let text: String
     let startTime: TimeInterval
     let endTime: TimeInterval

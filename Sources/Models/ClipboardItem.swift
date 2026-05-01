@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 
 /// Represents a single item captured from the clipboard during recording.
-struct ClipboardItem: Identifiable, Sendable {
+struct ClipboardItem: Identifiable, Sendable, Codable {
     let id: UUID
     let timestamp: Date          // When it was copied
     let type: ClipboardItemType
@@ -11,7 +11,7 @@ struct ClipboardItem: Identifiable, Sendable {
     let sourceApp: String?       // Which app the content was copied from
     let fileSize: Int64?         // File size in bytes (for saved items)
 
-    enum ClipboardItemType: String, Sendable {
+    enum ClipboardItemType: String, Sendable, Codable {
         case text
         case url
         case image
