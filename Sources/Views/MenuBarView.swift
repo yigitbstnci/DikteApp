@@ -1,218 +1,102 @@
 import SwiftUI
 import AppKit
 
-/// SwiftUI panel shown when the menu bar icon is clicked.
+/// Native dropdown content shown when the menu bar icon is clicked.
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedSection: PanelSection = .recording
+
+    @State private var selectedModelID: String = ""
+    @State private var selectedLanguageCode: String = ""
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        Text("Dikte 1.0")
+            .font(.system(.body, weight: .semibold))
 
-            Picker("", selection: $selectedSection) {
-                ForEach(PanelSection.allCases) { section in
-                    Label(section.title, systemImage: section.systemImage)
-                        .tag(section)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding(.horizontal, 14)
-            .padding(.bottom, 12)
+        Divider()
 
-            Divider()
-
-            Group {
-                switch selectedSection {
-                case .recording:
-                    recordingPanel
-                case .clipboard:
-                    clipboardPanel
-                case .settings:
-                    SettingsView()
-                        .environment(appState)
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: 300, alignment: .top)
-
-            Divider()
-
-            footer
+        Menu {
+            dictationItems
+        } label: {
+            Label("Kayıt", systemImage: dictationMenuIcon)
         }
-        .frame(width: 380)
-        .background(Color(nsColor: .windowBackgroundColor))
+
+        Menu {
+            clipboardItems
+        } label: {
+            Label("Pano", systemImage: "doc.on.clipboard")
+        }
+
+        Menu {
+            settingsItems
+        } label: {
+            Label("Ayarlar", systemImage: "gearshape")
+        }
+
+        Divider()
+
+        Button(action: quit) {
+            Label("Çıkış", systemImage: "power")
+        }
+        .keyboardShortcut("q")
+        .onAppear {
+            selectedModelID = appState.settings.whisperModelID
+            selectedLanguageCode = appState.settings.dictationLanguageCode
+        }
+        .onChange(of: selectedModelID) { _, newValue in
+            appState.setWhisperModelID(newValue)
+        }
+        .onChange(of: selectedLanguageCode) { _, newValue in
+            appState.setDictationLanguageCode(newValue)
+        }
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            Image(systemName: appState.isRecording ? "record.circle.fill" : "mic.badge.plus")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(appState.isRecording ? .red : .dzPrimary)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Dikte")
-                    .font(.dzHeading())
-                Text(statusText)
-                    .font(.dzSmallText())
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-        .padding(14)
-    }
-
-    private var recordingPanel: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            statusCard
-
+    @ViewBuilder
+    private var dictationItems: some View {
+        if appState.isProcessing {
+            Label("Yerel olarak işleniyor", systemImage: "hourglass")
+        } else {
             Button(action: appState.toggleRecording) {
                 Label(recordingActionTitle, systemImage: recordingActionIcon)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(appState.isProcessing)
-
-            if let processingError = appState.processingError {
-                Label(processingError, systemImage: "exclamationmark.triangle")
-                    .font(.dzSmallText())
-                    .foregroundStyle(.red)
-            }
-
-            modelStateRow
-
-            Spacer(minLength: 0)
         }
-        .padding(16)
+
+        if appState.isRecording {
+            Text("Süre: \(appState.formattedDuration)")
+        } else if appState.showResult {
+            Text("Sonuç panoda")
+        } else {
+            Text("Kısayol: ⌘⇧Space")
+        }
     }
 
-    private var statusCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(statusText)
-                    .font(.dzBody())
-                    .fontWeight(.semibold)
-                Spacer()
-                Text(appState.formattedDuration)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(appState.isRecording ? .red : .secondary)
-            }
-
-            if appState.isProcessing {
-                ProgressView()
-                Text(appState.processingStatus.isEmpty ? "Yerel olarak işleniyor..." : appState.processingStatus)
-                    .font(.dzSmallText())
-                    .foregroundStyle(.secondary)
-            } else if appState.isRecording {
-                Text("Pano takip ediliyor. Bitirdiğinde kayıt durdurulacak ve sonuç panoya yazılacak.")
-                    .font(.dzSmallText())
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Kısayolu Ayarlar sekmesinden değiştirebilirsin.")
-                    .font(.dzSmallText())
-                    .foregroundStyle(.secondary)
-            }
+    @ViewBuilder
+    private var clipboardItems: some View {
+        if appState.isRecording {
+            Label("Aktif", systemImage: "checkmark.circle")
+        } else {
+            Label("Pasif", systemImage: "pause.circle")
         }
-        .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+        if let currentSession = appState.currentSession {
+            Text("Son oturum: \(currentSession.clipboardItems.count) öğe")
+        } else {
+            Text("Son oturum yok")
+        }
     }
 
-    private var modelStateRow: some View {
-        HStack(spacing: 10) {
-            switch appState.modelReadyState {
-            case .preparing:
-                ProgressView()
-                    .controlSize(.small)
-                Text("Model hazırlanıyor")
-            case .ready:
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                Text("Model hazır")
-            case .failed:
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.red)
-                Text("Model hazırlanamadı")
+    @ViewBuilder
+    private var settingsItems: some View {
+        Picker("Model", selection: $selectedModelID) {
+            ForEach(WhisperModel.availableModels) { model in
+                Text(model.displayName).tag(model.id)
             }
-
-            Spacer()
-            Text(appState.settings.selectedModel.displayName)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
         }
-        .font(.dzSmallText())
-    }
 
-    private var clipboardPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label(appState.isRecording ? "Pano takibi aktif" : "Pano takibi pasif", systemImage: appState.isRecording ? "checkmark.circle" : "pause.circle")
-                Spacer()
-                if let currentSession = appState.currentSession {
-                    Text("Son: \(currentSession.clipboardItems.count) öğe")
-                        .foregroundStyle(.secondary)
-                }
+        Picker("Dil", selection: $selectedLanguageCode) {
+            ForEach(DictationLanguage.supportedLanguages) { language in
+                Text(language.displayName).tag(language.code)
             }
-            .font(.dzBody())
-
-            let items = appState.isRecording ? appState.clipboardMonitor.items : (appState.currentSession?.clipboardItems ?? [])
-
-            if items.isEmpty {
-                ContentUnavailableView(
-                    "Pano öğesi yok",
-                    systemImage: "doc.on.clipboard",
-                    description: Text("Kayıt sırasında kopyaladığın metin, link veya görseller burada özetlenir.")
-                )
-                .frame(maxWidth: .infinity, minHeight: 180)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(Array(items.prefix(8))) { item in
-                            clipboardRow(item)
-                        }
-                    }
-                }
-                .frame(maxHeight: 240)
-            }
-
-            Spacer(minLength: 0)
         }
-        .padding(16)
-    }
-
-    private func clipboardRow(_ item: ClipboardItem) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: clipboardIcon(for: item))
-                .foregroundStyle(Color.dzPrimary)
-                .frame(width: 20)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.sourceApp ?? "Pano")
-                    .font(.dzSmallText())
-                Text(clipboardDescription(for: item))
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-        .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-
-    private var footer: some View {
-        HStack {
-            Text(appState.settings.selectedLanguage.displayName)
-                .font(.dzSmallText())
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button("Çıkış", action: quit)
-                .keyboardShortcut("q")
-        }
-        .padding(14)
     }
 
     private var statusText: String {
@@ -231,6 +115,14 @@ struct MenuBarView: View {
         return "Hazır"
     }
 
+    private var dictationMenuIcon: String {
+        if appState.isProcessing {
+            return "hourglass"
+        }
+
+        return appState.isRecording ? "waveform.circle.fill" : "waveform"
+    }
+
     private var recordingActionTitle: String {
         appState.isRecording ? "Kaydı Durdur" : "Kayıt Başlat"
     }
@@ -239,50 +131,7 @@ struct MenuBarView: View {
         appState.isRecording ? "stop.circle" : "mic.circle"
     }
 
-    private func clipboardIcon(for item: ClipboardItem) -> String {
-        switch item.type {
-        case .image: return "photo"
-        case .url: return "link"
-        case .text: return "text.alignleft"
-        }
-    }
-
-    private func clipboardDescription(for item: ClipboardItem) -> String {
-        switch item.type {
-        case .image:
-            return "Görsel · \(item.formattedFileSize)"
-        case .url:
-            return "URL · \(item.formattedFileSize)"
-        case .text:
-            return "Metin · \(item.formattedFileSize)"
-        }
-    }
-
     private func quit() {
         NSApplication.shared.terminate(nil)
-    }
-}
-
-private enum PanelSection: String, CaseIterable, Identifiable {
-    case recording
-    case clipboard
-    case settings
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .recording: return "Kayıt"
-        case .clipboard: return "Pano"
-        case .settings: return "Ayarlar"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .recording: return "waveform"
-        case .clipboard: return "doc.on.clipboard"
-        case .settings: return "gearshape"
-        }
     }
 }

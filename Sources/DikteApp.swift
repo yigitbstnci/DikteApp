@@ -23,7 +23,7 @@ struct DikteApp: App {
                     appState.isRecording ? .red : .secondary
                 )
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
         .onChange(of: appState.isRecording) { _, isRecording in
             if isRecording {
                 FloatingHUDManager.shared.showHUD(appState: appState)
