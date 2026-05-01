@@ -5,7 +5,7 @@ description: Standardize git commit messages for this repo. Use when Codex write
 
 # Git Commit Standard
 
-Use lightweight Conventional Commits plus a short structured body for non-trivial work. The goal is that another AI can read the last three commits and understand the user's request, what changed, the before/after state, and which session/agent/model/tooling produced it.
+Use lightweight Conventional Commits plus a short structured body for non-trivial work. The goal is that another AI can read the last three commits and understand the user's request, what changed, the before/after state, and which repo session document plus runtime agent session produced it.
 
 ## Format
 
@@ -59,12 +59,12 @@ Before:
 After:
 - New behavior or structure.
 Metadata:
-- session=<id>; agent=<Codex|Claude|Cursor|Manual|Not recorded>; model=<name|Not recorded>; tooling=<tools>
+- session_doc=<repo session summary path or Not recorded>; agent_session_id=<actual OpenCode/Codex runtime session id or Not recorded>; agent=<OpenCode|Codex|Claude|Cursor|Manual|Not recorded>; model=<name|Not recorded>; tooling=<tools>
 ```
 
 Keep each bullet short and avoid filler. Do not include `Verification` in the commit body unless the user explicitly asks for it. Do not paste raw logs, private content, transcript text, clipboard text, or unrelated implementation detail.
 
-If exact session/model/tool data is unavailable, write `Not recorded`; do not invent metadata.
+`agent_session_id` must be the actual OpenCode/Codex runtime session id, not a docs session slug. `session_doc` may be a repo path such as `docs/context/sessions/<id>.md`. If the exact session document, runtime session id, model, or tooling is unavailable, write `Not recorded`; do not invent metadata.
 
 ## Commit Workflow
 
@@ -97,5 +97,5 @@ Before:
 After:
 - AppSettings is nonisolated; settings tests can instantiate and mutate it without UI actor coupling.
 Metadata:
-- session=2026-04-30-app-settings-mainactor; agent=Codex; model=GPT-5; tooling=shell, apply_patch, xcodebuild
+- session_doc=docs/context/sessions/2026-04-30-app-settings-mainactor.md; agent_session_id=Not recorded; agent=Codex; model=GPT-5; tooling=shell, apply_patch, xcodebuild
 ```
