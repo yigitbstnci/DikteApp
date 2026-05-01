@@ -15,6 +15,14 @@ struct MenuBarView: View {
 
         Divider()
 
+        Button(action: {
+            HistoryWindowManager.shared.showWindow(appState: appState)
+        }) {
+            Label("Geçmiş", systemImage: "clock.arrow.circlepath")
+        }
+
+        Divider()
+
         Menu {
             dictationItems
         } label: {
@@ -25,12 +33,6 @@ struct MenuBarView: View {
             clipboardItems
         } label: {
             Label("Pano", systemImage: "doc.on.clipboard")
-        }
-
-        Menu {
-            historyItems
-        } label: {
-            Label("Geçmiş", systemImage: "clock.arrow.circlepath")
         }
 
         Menu {
@@ -72,7 +74,7 @@ struct MenuBarView: View {
         }
 
         if appState.isRecording {
-            Text("Süre: \(appState.formattedDuration)")
+            Text("Kayıt aktif")
         } else if appState.showResult {
             Text("Sonuç panoda")
         } else {
@@ -96,17 +98,6 @@ struct MenuBarView: View {
     }
 
     @ViewBuilder
-    private var historyItems: some View {
-        Button(action: {
-            HistoryWindowManager.shared.showWindow(appState: appState)
-        }) {
-            Label("Geçmiş", systemImage: "clock.arrow.circlepath")
-        }
-
-        Divider()
-    }
-
-    @ViewBuilder
     private var settingsItems: some View {
         Picker("Model", selection: $selectedModelID) {
             ForEach(WhisperModel.availableModels) { model in
@@ -125,22 +116,6 @@ struct MenuBarView: View {
                 Text(option.displayName).tag(option)
             }
         }
-    }
-
-    private var statusText: String {
-        if appState.isProcessing {
-            return "İşleniyor"
-        }
-
-        if appState.isRecording {
-            return "Kayıt: \(appState.formattedDuration)"
-        }
-
-        if appState.showResult {
-            return "Panoya kopyalandı"
-        }
-
-        return "Hazır"
     }
 
     private var dictationMenuIcon: String {
