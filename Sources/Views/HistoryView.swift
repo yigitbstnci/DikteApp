@@ -151,6 +151,9 @@ struct HistoryView: View {
     private let historyStore = HistoryStore()
     @State private var cancellable: AnyCancellable?
 
+    @State private var showClearOldConfirmation = false
+    @State private var showClearAllConfirmation = false
+
     var filteredEntries: [HistoryEntry] {
         if searchText.isEmpty {
             return entries
@@ -189,6 +192,28 @@ struct HistoryView: View {
         .onDisappear {
             cancellable?.cancel()
         }
+        .alert("7 günden eski kayıtlar silinsin mi?", isPresented: $showClearOldConfirmation) {
+            Button("Vazgeç", role: .cancel) {}
+            Button("Sil", role: .destructive) {
+                historyStore.prune(olderThanDays: 7)
+                entries = historyStore.load()
+                selectedID = entries.first?.id
+                DikteLog.action("history", "cleanup.manual", "7 günden eski kayıtlar temizlendi.", metadata: [:])
+            }
+        } message: {
+            Text("Bu işlem transkripsiyonları, geçmiş kayıtlarını ve ilgili clipboard görsel/metin dosyalarını kalıcı olarak siler.")
+        }
+        .alert("Tüm geçmiş silinsin mi?", isPresented: $showClearAllConfirmation) {
+            Button("Vazgeç", role: .cancel) {}
+            Button("Tümünü Sil", role: .destructive) {
+                historyStore.clearAll()
+                entries = historyStore.load()
+                selectedID = nil
+                DikteLog.action("history", "cleanup.manual", "Tüm geçmiş temizlendi.", metadata: [:])
+            }
+        } message: {
+            Text("Bu işlem transkripsiyonları, geçmiş kayıtlarını ve ilgili clipboard görsel/metin dosyalarını kalıcı olarak siler.")
+        }
     }
 
     private func setupNotification() {
@@ -217,16 +242,24 @@ struct HistoryView: View {
                     .foregroundColor(.dzTextPrimary)
                 Spacer()
                 if !entries.isEmpty {
-                    Button(action: {
-                        historyStore.clearAll()
-                        entries = []
-                        selectedID = nil
-                    }) {
+                    Menu {
+                        Button(action: {
+                            showClearOldConfirmation = true
+                        }) {
+                            Label("7 günden eski kayıtları temizle", systemImage: "calendar.badge.minus")
+                        }
+
+                        Button(role: .destructive, action: {
+                            showClearAllConfirmation = true
+                        }) {
+                            Label("Tüm geçmişi temizle", systemImage: "trash")
+                        }
+                    } label: {
                         Image(systemName: "trash")
                             .font(.system(size: 12))
                             .foregroundColor(.dzTextMuted)
                     }
-                    .buttonStyle(.plain)
+                    .fixedSize()
                 }
             }
             .padding(.horizontal, 16)

@@ -70,6 +70,7 @@ final class AppState {
         if !Self.isRunningTests {
             FloatingHUDManager.shared.showHUD(appState: self)
             prepareSelectedModel(reloadExisting: false)
+            performHistoryCleanup()
         }
     }
 
@@ -259,6 +260,7 @@ final class AppState {
                         mergedOutput: session.mergedOutput
                     )
                     self.historyStore.append(historyEntry)
+                    self.performHistoryCleanup()
                     try? FileManager.default.removeItem(at: audioURL)
                 }
             } catch {
@@ -309,6 +311,14 @@ final class AppState {
                 }
             }
         }
+    }
+
+    private func performHistoryCleanup() {
+        let retention = settings.historyRetentionOption
+        if let days = retention.days {
+            historyStore.prune(olderThanDays: days)
+        }
+        historyStore.cleanupOrphanAssets()
     }
 
     func copyOutputToClipboard(sessionID: String? = nil) {

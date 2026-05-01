@@ -17,7 +17,7 @@ final class ClipboardMonitorService {
     private var activeSessionID: String?
 
     /// Base directory to save all clipboard artifacts (images + text files)
-    private let storageDir: URL = {
+    static let clipboardAssetsDir: URL = {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let dir = appSupport.appendingPathComponent("Dikte/ClipboardAssets", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -169,7 +169,7 @@ final class ClipboardMonitorService {
     /// Saves text/URL content to a .txt file and returns a ClipboardItem with file path + size.
     private func saveText(_ content: String, isURL: Bool, timestamp: Date, sourceApp: String?) -> ClipboardItem {
         let fileName = "clipboard_\(UUID().uuidString).txt"
-        let fileURL = storageDir.appendingPathComponent(fileName)
+        let fileURL = Self.clipboardAssetsDir.appendingPathComponent(fileName)
         var fileSize: Int64 = Int64(content.utf8.count)
 
         do {
@@ -202,7 +202,7 @@ final class ClipboardMonitorService {
         }
 
         let fileName = "clipboard_\(UUID().uuidString).png"
-        let fileURL = storageDir.appendingPathComponent(fileName)
+        let fileURL = Self.clipboardAssetsDir.appendingPathComponent(fileName)
 
         do {
             try pngData.write(to: fileURL)

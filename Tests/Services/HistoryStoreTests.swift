@@ -1,6 +1,7 @@
 import XCTest
 @testable import Dikte
 
+@MainActor
 final class HistoryStoreTests: XCTestCase {
     private var store: HistoryStore!
     private var tempDir: URL!
@@ -220,5 +221,188 @@ final class HistoryStoreTests: XCTestCase {
 
         store.clearAll()
         XCTAssertTrue(received, "clearAll should post historyDidChange notification")
+    }
+
+    func testPruneRemovesOldEntries() {
+        let oldEntry = HistoryEntry(
+            id: UUID(),
+            date: Date().addingTimeInterval(-8 * 24 * 60 * 60),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [],
+            mergedOutput: "old"
+        )
+        let recentEntry = HistoryEntry(
+            id: UUID(),
+            date: Date(),
+            duration: 10.0,
+            transcriptSegments: [],
+            clipboardItems: [],
+            mergedOutput: "recent"
+        )
+        store.append(oldEntry)
+        store.append(recentEntry)
+
+        store.prune(olderThanDays: 7)
+
+        let loaded = store.load()
+        XCTAssertEqual(loaded.count, 1)
+        XCTAssertEqual(loaded[0].id, recentEntry.id)
+    }
+
+    func testPruneKeepsNewEntries() {
+        let entry = HistoryEntry(
+            id: UUID(),
+            date: Date(),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [],
+            mergedOutput: "recent"
+        )
+        store.append(entry)
+
+        store.prune(olderThanDays: 7)
+
+        let loaded = store.load()
+        XCTAssertEqual(loaded.count, 1)
+        XCTAssertEqual(loaded[0].id, entry.id)
+    }
+
+    func testPruneDeletesOldEntryAssets() {
+        let assetFile = tempDir.appendingPathComponent("clipboard_test_asset.txt")
+        try? "asset content".write(to: assetFile, atomically: true, encoding: .utf8)
+
+        let oldEntry = HistoryEntry(
+            id: UUID(),
+            date: Date().addingTimeInterval(-8 * 24 * 60 * 60),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [
+                ClipboardItem(
+                    id: UUID(),
+                    timestamp: Date(),
+                    type: .text,
+                    textContent: "test",
+                    imageFilePath: assetFile.path,
+                    sourceApp: "Notes",
+                    fileSize: 1024
+                )
+            ],
+            mergedOutput: "old"
+        )
+        store.append(oldEntry)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: assetFile.path))
+
+        store.prune(olderThanDays: 7)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: assetFile.path))
+    }
+
+    func testClearAllDeletesAllAssets() {
+        let assetFile1 = tempDir.appendingPathComponent("clipboard_asset1.txt")
+        let assetFile2 = tempDir.appendingPathComponent("clipboard_asset2.txt")
+        try? "content1".write(to: assetFile1, atomically: true, encoding: .utf8)
+        try? "content2".write(to: assetFile2, atomically: true, encoding: .utf8)
+
+        let entry = HistoryEntry(
+            id: UUID(),
+            date: Date(),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [
+                ClipboardItem(
+                    id: UUID(),
+                    timestamp: Date(),
+                    type: .text,
+                    textContent: "test1",
+                    imageFilePath: assetFile1.path,
+                    sourceApp: "Notes",
+                    fileSize: 1024
+                ),
+                ClipboardItem(
+                    id: UUID(),
+                    timestamp: Date(),
+                    type: .image,
+                    textContent: nil,
+                    imageFilePath: assetFile2.path,
+                    sourceApp: "Safari",
+                    fileSize: 2048
+                )
+            ],
+            mergedOutput: "test"
+        )
+        store.append(entry)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: assetFile1.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: assetFile2.path))
+
+        store.clearAll()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: assetFile1.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: assetFile2.path))
+        XCTAssertTrue(store.load().isEmpty)
+    }
+
+    func testDeleteRemovesEntryAssets() {
+        let assetFile = tempDir.appendingPathComponent("clipboard_delete_asset.txt")
+        try? "asset content".write(to: assetFile, atomically: true, encoding: .utf8)
+
+        let entry = HistoryEntry(
+            id: UUID(),
+            date: Date(),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [
+                ClipboardItem(
+                    id: UUID(),
+                    timestamp: Date(),
+                    type: .text,
+                    textContent: "test",
+                    imageFilePath: assetFile.path,
+                    sourceApp: "Notes",
+                    fileSize: 1024
+                )
+            ],
+            mergedOutput: "test"
+        )
+        store.append(entry)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: assetFile.path))
+
+        store.delete(id: entry.id)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: assetFile.path))
+        XCTAssertTrue(store.load().isEmpty)
+    }
+
+    func testClearAllCleansOrphanAssets() {
+        let orphanFile = ClipboardMonitorService.clipboardAssetsDir.appendingPathComponent("orphan_test_\(UUID().uuidString).txt")
+        try? "orphan content".write(to: orphanFile, atomically: true, encoding: .utf8)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: orphanFile.path))
+
+        store.clearAll()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: orphanFile.path))
+    }
+
+    func testPruneCleansOrphanAssets() {
+        let recentEntry = HistoryEntry(
+            id: UUID(),
+            date: Date(),
+            duration: 5.0,
+            transcriptSegments: [],
+            clipboardItems: [],
+            mergedOutput: "recent"
+        )
+        store.append(recentEntry)
+
+        let orphanFile = ClipboardMonitorService.clipboardAssetsDir.appendingPathComponent("orphan_prune_\(UUID().uuidString).txt")
+        try? "orphan content".write(to: orphanFile, atomically: true, encoding: .utf8)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: orphanFile.path))
+
+        store.prune(olderThanDays: 7)
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: orphanFile.path))
+        XCTAssertEqual(store.load().count, 1)
     }
 }

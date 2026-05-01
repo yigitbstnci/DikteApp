@@ -18,6 +18,12 @@ No active tasks are currently recorded.
 
 ## Completed
 
+### DKT-TASK-0010: History Retention and Cleanup
+
+- Status: Completed
+- Goal: Add configurable history retention cleanup (1/7/30 days, unlimited) and manual cleanup with confirmation dialogs.
+- Date: 2026-05-01
+
 ### DKT-TASK-0009: Persistent History Screen
 
 - Status: Completed

@@ -7,6 +7,7 @@ struct MenuBarView: View {
 
     @State private var selectedModelID: String = ""
     @State private var selectedLanguageCode: String = ""
+    @State private var selectedHistoryRetentionOption: HistoryRetentionOption = .sevenDays
 
     var body: some View {
         Text("Dikte 1.0")
@@ -47,12 +48,16 @@ struct MenuBarView: View {
         .onAppear {
             selectedModelID = appState.settings.whisperModelID
             selectedLanguageCode = appState.settings.dictationLanguageCode
+            selectedHistoryRetentionOption = appState.settings.historyRetentionOption
         }
         .onChange(of: selectedModelID) { _, newValue in
             appState.setWhisperModelID(newValue)
         }
         .onChange(of: selectedLanguageCode) { _, newValue in
             appState.setDictationLanguageCode(newValue)
+        }
+        .onChange(of: selectedHistoryRetentionOption) { _, newValue in
+            appState.settings.historyRetentionOption = newValue
         }
     }
 
@@ -112,6 +117,12 @@ struct MenuBarView: View {
         Picker("Dil", selection: $selectedLanguageCode) {
             ForEach(DictationLanguage.supportedLanguages) { language in
                 Text(language.displayName).tag(language.code)
+            }
+        }
+
+        Picker("Geçmiş Temizliği", selection: $selectedHistoryRetentionOption) {
+            ForEach(HistoryRetentionOption.allCases, id: \.self) { option in
+                Text(option.displayName).tag(option)
             }
         }
     }

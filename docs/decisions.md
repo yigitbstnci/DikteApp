@@ -57,3 +57,10 @@ This file records durable workflow and architecture decisions. Keep entries shor
 - Status: Accepted
 - Decision: History persists `mergedOutput`, `transcriptSegments`, and `clipboardItems` as JSON; audio files are deleted after transcription.
 - Consequence: Memory savings; no audio stored; transcript + clipboard context preserved for review.
+
+## DKT-ADR-0009: Cleanup Prunes Orphan ClipboardAssets After Every Cleanup
+
+- Date: 2026-05-01
+- Status: Accepted
+- Decision: Every history cleanup operation (`prune`, `clearAll`, `delete`) deletes the referenced clipboard asset files, then `cleanupOrphanAssets()` runs after every prune and clearAll to remove unreferenced assets. Automatic cleanup runs on app launch and after each history save.
+- Consequence: ClipboardAssets directory stays clean; no orphaned clipboard files accumulate when history entries are removed manually or via retention policy.

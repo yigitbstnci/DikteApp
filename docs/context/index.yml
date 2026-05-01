@@ -62,6 +62,7 @@ decisions:
   - DKT-ADR-0006
   - DKT-ADR-0007
   - DKT-ADR-0008
+  - DKT-ADR-0009
 tasks:
   active: []
   ongoing:
@@ -72,3 +73,4 @@ tasks:
     - DKT-TASK-0007
     - DKT-TASK-0008
     - DKT-TASK-0009
+    - DKT-TASK-0010
