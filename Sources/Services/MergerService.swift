@@ -47,11 +47,9 @@ final class MergerService: Sendable {
         guard !transcriptSegments.isEmpty else {
             // No speech — just list clipboard items as attachments
             if clipboardItems.isEmpty { return "" }
-            var output = "Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
-            for (i, item) in clipboardItems.enumerated() {
-                output += "\n" + item.attachmentLine(index: i + 1)
-            }
-            return output
+            return Self.attachmentsSection(for: Array(clipboardItems.enumerated()).map { index, item in
+                (index: index + 1, item: item)
+            })
         }
 
         // Convert clipboard items' absolute timestamps to relative seconds
@@ -65,11 +63,9 @@ final class MergerService: Sendable {
         let transcriptPieces = Self.makeTranscriptPieces(from: transcriptSegments)
         guard !transcriptPieces.isEmpty else {
             if clipboardItems.isEmpty { return "" }
-            var output = "Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
-            for (i, item) in clipboardItems.enumerated() {
-                output += "\n" + item.attachmentLine(index: i + 1)
-            }
-            return output
+            return Self.attachmentsSection(for: Array(clipboardItems.enumerated()).map { index, item in
+                (index: index + 1, item: item)
+            })
         }
 
         // Build continuous text with inline annotation markers
@@ -121,13 +117,17 @@ final class MergerService: Sendable {
 
         // Add Attachments section if there are any
         if !attachments.isEmpty {
-            output += "\n\nAttachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n"
-            for (index, item) in attachments {
-                output += "\n" + item.attachmentLine(index: index)
-            }
+            output += "\n\n" + Self.attachmentsSection(for: attachments)
         }
 
         return output
+    }
+
+    private static func attachmentsSection(for attachments: [(index: Int, item: ClipboardItem)]) -> String {
+        let lines = attachments.map { index, item in
+            item.attachmentLine(index: index)
+        }
+        return "Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]\n\n" + lines.joined(separator: "\n")
     }
 
     private struct TranscriptPiece {

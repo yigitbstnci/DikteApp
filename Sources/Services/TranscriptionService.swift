@@ -11,6 +11,8 @@ actor TranscriptionService {
 
     private static let normalizedSampleRate: Double = 16000
     private static let normalizedChannels: AVAudioChannelCount = 1
+    private static let specialTokenRegex = try? NSRegularExpression(pattern: #"<\|[^|]*\|>"#)
+    private static let whitespaceRegex = try? NSRegularExpression(pattern: #"\s+"#)
 
     func preload(modelName: String) async throws {
         _ = try await loadWhisperKit(modelName: modelName)
@@ -365,8 +367,8 @@ actor TranscriptionService {
         var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleaned.isEmpty else { return cleaned }
 
-        if let regex = try? NSRegularExpression(pattern: #"<\|[^|]*\|>"#) {
-            cleaned = regex.stringByReplacingMatches(
+        if let specialTokenRegex {
+            cleaned = specialTokenRegex.stringByReplacingMatches(
                 in: cleaned,
                 range: NSRange(cleaned.startIndex..., in: cleaned),
                 withTemplate: ""
@@ -375,8 +377,8 @@ actor TranscriptionService {
 
         cleaned = Self.removeTrailingHallucinations(cleaned)
 
-        if let regex = try? NSRegularExpression(pattern: #"\s+"#) {
-            cleaned = regex.stringByReplacingMatches(
+        if let whitespaceRegex {
+            cleaned = whitespaceRegex.stringByReplacingMatches(
                 in: cleaned,
                 range: NSRange(cleaned.startIndex..., in: cleaned),
                 withTemplate: " "

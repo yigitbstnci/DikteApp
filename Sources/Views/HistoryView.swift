@@ -144,6 +144,7 @@ struct PopoverContent: View {
 
 struct HistoryView: View {
     @State private var entries: [HistoryEntry] = []
+    @State private var searchIndex: [UUID: String] = [:]
     @State private var selectedID: UUID?
     @State private var searchText: String = ""
     @Environment(AppState.self) private var appState
@@ -159,8 +160,7 @@ struct HistoryView: View {
             return entries
         }
         return entries.filter {
-            $0.transcriptText.localizedCaseInsensitiveContains(searchText) ||
-            $0.mergedOutput.localizedCaseInsensitiveContains(searchText)
+            (searchIndex[$0.id] ?? $0.historySearchText).localizedCaseInsensitiveContains(searchText)
         }
     }
 
@@ -183,7 +183,7 @@ struct HistoryView: View {
         .frame(minWidth: 680, minHeight: 480)
         .glassPanel(radius: 18)
         .onAppear {
-            entries = historyStore.load()
+            setEntries(historyStore.load())
             if selectedID == nil, let first = entries.first {
                 selectedID = first.id
             }
@@ -196,7 +196,7 @@ struct HistoryView: View {
             Button("Vazgeç", role: .cancel) {}
             Button("Sil", role: .destructive) {
                 historyStore.prune(olderThanDays: 7)
-                entries = historyStore.load()
+                setEntries(historyStore.load())
                 selectedID = entries.first?.id
                 DikteLog.action("history", "cleanup.manual", "7 günden eski kayıtlar temizlendi.", metadata: [:])
             }
@@ -207,7 +207,7 @@ struct HistoryView: View {
             Button("Vazgeç", role: .cancel) {}
             Button("Tümünü Sil", role: .destructive) {
                 historyStore.clearAll()
-                entries = historyStore.load()
+                setEntries(historyStore.load())
                 selectedID = nil
                 DikteLog.action("history", "cleanup.manual", "Tüm geçmiş temizlendi.", metadata: [:])
             }
@@ -221,7 +221,7 @@ struct HistoryView: View {
             .receive(on: DispatchQueue.main)
             .sink { [self] _ in
                 let previousID = selectedID
-                entries = historyStore.load()
+                setEntries(historyStore.load())
                 if searchText.isEmpty {
                     if let topEntry = entries.first, previousID != topEntry.id {
                         selectedID = topEntry.id
@@ -230,6 +230,13 @@ struct HistoryView: View {
                     selectedID = previousID.flatMap { id in entries.first { $0.id == id }?.id }
                 }
             }
+    }
+
+    private func setEntries(_ newEntries: [HistoryEntry]) {
+        entries = newEntries
+        searchIndex = Dictionary(uniqueKeysWithValues: newEntries.map { entry in
+            (entry.id, entry.historySearchText)
+        })
     }
 
     private var listPanel: some View {
@@ -395,7 +402,7 @@ struct HistoryView: View {
 
                 Button(action: {
                     historyStore.delete(id: entry.id)
-                    entries = historyStore.load()
+                    setEntries(historyStore.load())
                     selectedID = entries.first?.id
                 }) {
                     Image(systemName: "trash")
@@ -447,6 +454,12 @@ struct HistoryView: View {
             "chars": entry.mergedOutput.count,
             "entry_id": entry.id.uuidString
         ])
+    }
+}
+
+private extension HistoryEntry {
+    var historySearchText: String {
+        transcriptText + "\n" + mergedOutput
     }
 }
 
