@@ -34,12 +34,16 @@ dependencies:
 1. Resolve `SYSTEM_ROOT`.
 2. Detect project mode: existing, fresh, or unclear.
 3. Analyze read-only first: files, docs, configs, commands, existing `AGENTS.md`.
-4. Report findings with confidence scores and missing information.
-5. Propose setup plan.
+4. Read available docs enough to summarize how the project works and which rules it contains.
+5. Report findings in Turkish with confidence scores and missing information.
 6. Ask approval before writing.
 7. For existing projects, merge the MYB block from `AGENTS_TEMPLATE.md`; never overwrite existing `AGENTS.md`.
 8. For fresh projects, ask start questions and create a base project `AGENTS.md`.
 9. Create/update project context only after approval.
+
+## Output Language
+
+Default output language is Turkish. Keep technical identifiers, commands, file paths, and dependency references unchanged.
 
 ## Start Questions For Fresh Projects
 
@@ -56,10 +60,23 @@ dependencies:
 ## Existing Project Report Format
 
 ```text
-Detected Mode: Existing Project
-Evidence:
-- package/config/docs found
-- AGENTS.md: exists/absent
+Tespit Edilen Mod: Existing Project
+
+Kanıtlar:
+- package/config/docs bulundu
+- AGENTS.md: var/yok
+
+Tespit Edilen SYSTEM_ROOT:
+- SYSTEM_ROOT: ./newsystem veya ./.opencode
+- Manifest: {SYSTEM_ROOT}/system-manifest.json
+- Context navigation: {SYSTEM_ROOT}/context/navigation.md
+
+Proje Anlama Özeti:
+- Proje ne yapıyor: ...
+- Nasıl çalışıyor: ...
+- Önemli komutlar: ...
+- Ana kurallar: ...
+- Privacy/safety notları: ...
 
 Confidence:
 - Tech stack: high|medium|low|unknown
@@ -69,8 +86,29 @@ Confidence:
 Missing Information:
 1. ...
 
-Proposed Setup:
-- Merge AGENTS integration block
-- Create/update project context
-- Recommend specialist agents if needed
+Önerilen AGENTS Integration Block:
+```md
+## MYB Software Studio Integration
+
+- SYSTEM_ROOT: ./.opencode
+- Primary agent: ./.opencode/agent/myb-Orchestrator.md
+- Context navigation: ./.opencode/context/navigation.md
+- System manifest: ./.opencode/system-manifest.json
+
+Project AGENTS.md rules remain higher priority.
+```
+
+Önerilen Kurulum:
+- AGENTS integration block merge et
+- Gerekirse project context oluştur/güncelle
+- Gerekirse specialist agent öner
+
+Specialist Agent Kararı:
+- Şimdilik yeni agent önerilmiyor/öneriliyor
+- Neden: ...
+
+Seçenekler:
+A) Sadece AGENTS integration block ekle
+B) AGENTS block + project context oluştur
+C) Hiçbir değişiklik yapma
 ```

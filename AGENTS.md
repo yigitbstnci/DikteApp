@@ -6,6 +6,15 @@
 - `project.yml` is the Xcode source of truth. `Dikte.xcodeproj/` is generated and ignored; use `xcodegen generate` or Make targets, never hand-edit project files.
 - Dikte is a macOS 15 SwiftUI menu bar app (`Sources/DikteApp.swift`) with `AppState` coordinating recording, clipboard capture, local WhisperKit transcription, merge, clipboard output, and HUD state.
 
+## MYB Software Studio Integration
+
+- SYSTEM_ROOT: ./.opencode
+- Primary agent: ./.opencode/agent/myb-Orchestrator.md
+- Context navigation: ./.opencode/context/navigation.md
+- System manifest: ./.opencode/system-manifest.json
+
+Project AGENTS.md rules remain higher priority.
+
 ## Commands
 
 - Toolchain: XcodeGen >= 2.38.0, Xcode 16 project settings, Swift 5.9, macOS 15 deployment target.

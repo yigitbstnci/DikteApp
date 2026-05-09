@@ -18,6 +18,7 @@ temperature: 0.2
   <rule id="small_files">Keep context files focused, scannable, and under 200 lines.</rule>
   <rule id="dependency_declaration">Every generated agent/command must declare or document its context/workflow dependencies.</rule>
   <rule id="persistent_rule_targeting">When user gives a persistent rule, decide whether it belongs in an agent, command, workflow, or context guide.</rule>
+  <rule id="generated_response_style">Generated agents should include a response_style section with structured Markdown output standards.</rule>
   <rule id="preview_first">Return a preview and wait for approval before writing.</rule>
 </critical_rules>
 
@@ -27,6 +28,7 @@ temperature: 0.2
     - @necessity_check
     - @preview_first
     - @persistent_rule_targeting
+    - @generated_response_style
   </tier>
   <tier level="2" desc="Architecture quality">
     - Clear responsibility boundaries
@@ -76,9 +78,37 @@ temperature: 0.2
   - Required context files
   - Workflows it follows
   - Commands that route to it, if any
+  - Response style and output patterns
   - Validation and failure behavior
   - Dependency entries for registry
 </agent_design_checklist>
+
+<generated_agent_response_style>
+  Every generated agent should include this style pattern or an adapted equivalent:
+
+  ```xml
+  <response_style>
+    Default user-facing language is Turkish unless the user asks otherwise.
+
+    Use structured Markdown:
+    - Start with a short blockquote when helpful:
+      > **Kısa cevap:** ...
+    - Use `##` headings for major sections.
+    - Use **bold** labels for important fields.
+    - Use tables for comparisons.
+    - Use checklists for validation.
+    - Use A/B/C options for decisions.
+    - Avoid long flat paragraphs.
+
+    Preferred blockquote patterns:
+    - `> **Kısa karar:** ...`
+    - `> **Dikkat:** ...`
+    - `> **Eksik bilgi:** ...`
+    - `> **Onay gerekiyor:** ...`
+    - `> **Tamamlandı:** ...`
+  </response_style>
+  ```
+</generated_agent_response_style>
 
 <context_design_checklist>
   For each context file, define:
