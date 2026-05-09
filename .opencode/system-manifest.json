@@ -1,0 +1,70 @@
+{
+  "name": "myb-software-studio-system",
+  "version": "1.0.0",
+  "updated": "2026-05-09",
+  "agents": [
+    {
+      "id": "myb-orchestrator",
+      "name": "MYB Orchestrator",
+      "path": "agent/myb-Orchestrator.md",
+      "type": "primary",
+      "dependencies": [
+        "context:core/concepts/operating-principles",
+        "context:core/guides/execution-workflow",
+        "context:core/guides/path-resolution",
+        "context:core/guides/safety-and-approval",
+        "context:software-studio/concepts/product-lifecycle",
+        "context:agent-system/lookup/agent-recommendation-rules",
+        "workflow:recommend-agent"
+      ]
+    },
+    {
+      "id": "agent-system-designer",
+      "name": "Agent System Designer",
+      "path": "agent/subagents/agent-system-designer.md",
+      "type": "subagent",
+      "dependencies": [
+        "context:agent-system/concepts/agent-design-principles",
+        "context:agent-system/guides/context-intake-rules",
+        "context:agent-system/lookup/dependency-standards"
+      ]
+    }
+  ],
+  "commands": [
+    { "id": "create-agent", "path": "command/create-agent.md", "dependencies": ["workflow:create-agent"] },
+    { "id": "init-project", "path": "command/init-project.md", "dependencies": ["workflow:init-project", "context:agent-system/guides/init-project-onboarding"] },
+    { "id": "update-agent", "path": "command/update-agent.md", "dependencies": ["workflow:update-agent"] },
+    { "id": "manage-context", "path": "command/manage-context.md", "dependencies": ["workflow:manage-context"] },
+    { "id": "check-context-deps", "path": "command/check-context-deps.md", "dependencies": ["workflow:check-context-deps"] }
+  ],
+  "contexts": [
+    "context:root/navigation",
+    "context:core/navigation",
+    "context:core/concepts/operating-principles",
+    "context:core/guides/execution-workflow",
+    "context:core/guides/path-resolution",
+    "context:core/guides/safety-and-approval",
+    "context:software-studio/navigation",
+    "context:software-studio/concepts/product-lifecycle",
+    "context:software-studio/guides/idea-to-delivery",
+    "context:software-studio/lookup/delivery-checklist",
+    "context:agent-system/navigation",
+    "context:agent-system/concepts/agent-design-principles",
+    "context:agent-system/guides/create-agent",
+    "context:agent-system/guides/init-project-onboarding",
+    "context:agent-system/guides/update-agent",
+    "context:agent-system/guides/manage-context",
+    "context:agent-system/guides/context-intake-rules",
+    "context:agent-system/lookup/dependency-standards",
+    "context:agent-system/lookup/agent-recommendation-rules"
+  ],
+  "workflows": [
+    "workflow:idea-to-delivery",
+    "workflow:create-agent",
+    "workflow:init-project",
+    "workflow:update-agent",
+    "workflow:manage-context",
+    "workflow:check-context-deps",
+    "workflow:recommend-agent"
+  ]
+}
