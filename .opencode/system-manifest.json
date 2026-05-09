@@ -28,6 +28,17 @@
         "context:agent-system/guides/context-intake-rules",
         "context:agent-system/lookup/dependency-standards"
       ]
+    },
+    {
+      "id": "myb-implementation-builder",
+      "name": "MYB Implementation Builder",
+      "path": "agent/subagents/myb-Implementation-Builder.md",
+      "type": "subagent",
+      "dependencies": [
+        "context:core/guides/execution-workflow",
+        "context:core/guides/safety-and-approval",
+        "context:core/guides/path-resolution"
+      ]
     }
   ],
   "commands": [
