@@ -270,5 +270,6 @@ permission:
   - Execution: `{SYSTEM_ROOT}/context/core/guides/execution-workflow.md`
   - Safety: `{SYSTEM_ROOT}/context/core/guides/safety-and-approval.md`
   - Path resolution: `{SYSTEM_ROOT}/context/core/guides/path-resolution.md`
+  - Implementation standards: `{SYSTEM_ROOT}/context/software-studio/guides/implementation-standards.md`
   - Agent recommendations: `{SYSTEM_ROOT}/context/agent-system/lookup/agent-recommendation-rules.md`
 </context_map>

@@ -14,6 +14,7 @@
         "context:core/guides/path-resolution",
         "context:core/guides/safety-and-approval",
         "context:software-studio/concepts/product-lifecycle",
+        "context:software-studio/guides/implementation-standards",
         "context:agent-system/lookup/agent-recommendation-rules",
         "workflow:recommend-agent"
       ]
@@ -37,7 +38,8 @@
       "dependencies": [
         "context:core/guides/execution-workflow",
         "context:core/guides/safety-and-approval",
-        "context:core/guides/path-resolution"
+        "context:core/guides/path-resolution",
+        "context:software-studio/guides/implementation-standards"
       ]
     }
   ],
@@ -58,16 +60,21 @@
     "context:software-studio/navigation",
     "context:software-studio/concepts/product-lifecycle",
     "context:software-studio/guides/idea-to-delivery",
+    "context:software-studio/guides/implementation-standards",
     "context:software-studio/lookup/delivery-checklist",
     "context:agent-system/navigation",
     "context:agent-system/concepts/agent-design-principles",
+    "context:agent-system/concepts/skills",
     "context:agent-system/guides/create-agent",
+    "context:agent-system/guides/create-skill",
     "context:agent-system/guides/init-project-onboarding",
     "context:agent-system/guides/update-agent",
     "context:agent-system/guides/manage-context",
     "context:agent-system/guides/context-intake-rules",
+    "context:agent-system/guides/use-skill",
     "context:agent-system/lookup/dependency-standards",
-    "context:agent-system/lookup/agent-recommendation-rules"
+    "context:agent-system/lookup/agent-recommendation-rules",
+    "context:agent-system/lookup/skill-structure"
   ],
   "workflows": [
     "workflow:idea-to-delivery",

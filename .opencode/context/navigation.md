@@ -37,8 +37,11 @@ context/
 | **Safety/approval** | `core/guides/safety-and-approval.md` |
 | **Path resolution** | `core/guides/path-resolution.md` |
 | **Product work** | `software-studio/navigation.md` |
+| **Implementation standards** | `software-studio/guides/implementation-standards.md` |
 | **Initialize project** | `agent-system/guides/init-project-onboarding.md` |
 | **Create agent** | `agent-system/guides/create-agent.md` |
+| **Use skill** | `agent-system/guides/use-skill.md` |
+| **Create skill** | `agent-system/guides/create-skill.md` |
 | **Update agent** | `agent-system/guides/update-agent.md` |
 | **Context design** | `agent-system/guides/manage-context.md` |
 | **Dependency check** | `agent-system/lookup/dependency-standards.md` |
@@ -49,7 +52,7 @@ context/
 
 **Core** → Operating principles, execution, safety  
 **Software Studio** → Product lifecycle and delivery  
-**Agent System** → Agent, command, context, dependency design
+**Agent System** → Agent, command, context, skill, dependency design
 
 ---
 

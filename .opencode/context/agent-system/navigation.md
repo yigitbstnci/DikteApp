@@ -12,16 +12,20 @@
 agent-system/
 ├── navigation.md
 ├── concepts/
-│   └── agent-design-principles.md
+│   ├── agent-design-principles.md
+│   └── skills.md
 ├── guides/
 │   ├── create-agent.md
+│   ├── create-skill.md
 │   ├── init-project-onboarding.md
 │   ├── update-agent.md
 │   ├── manage-context.md
-│   └── context-intake-rules.md
+│   ├── context-intake-rules.md
+│   └── use-skill.md
 └── lookup/
     ├── dependency-standards.md
-    └── agent-recommendation-rules.md
+    ├── agent-recommendation-rules.md
+    └── skill-structure.md
 ```
 
 ---
@@ -31,21 +35,25 @@ agent-system/
 | Task | Path |
 |------|------|
 | **Design agent** | `concepts/agent-design-principles.md` |
+| **Understand skills** | `concepts/skills.md` |
 | **Initialize project** | `guides/init-project-onboarding.md` |
 | **Create agent** | `guides/create-agent.md` |
+| **Create skill** | `guides/create-skill.md` |
+| **Use skill** | `guides/use-skill.md` |
 | **Update agent** | `guides/update-agent.md` |
 | **Manage context** | `guides/manage-context.md` |
 | **Collect context** | `guides/context-intake-rules.md` |
 | **Check dependencies** | `lookup/dependency-standards.md` |
 | **Recommend agent** | `lookup/agent-recommendation-rules.md` |
+| **Check skill structure** | `lookup/skill-structure.md` |
 
 ---
 
 ## By Concern
 
-**Concepts** → Agent design principles  
-**Guides** → Create/update/manage workflows  
-**Lookup** → Dependency and recommendation rules
+**Concepts** → Agent design principles, skills  
+**Guides** → Create/update/manage workflows, skill workflows  
+**Lookup** → Dependency, recommendation, and skill structure rules
 
 ---
 

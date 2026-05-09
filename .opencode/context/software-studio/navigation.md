@@ -14,7 +14,8 @@ software-studio/
 ├── concepts/
 │   └── product-lifecycle.md
 ├── guides/
-│   └── idea-to-delivery.md
+│   ├── idea-to-delivery.md
+│   └── implementation-standards.md
 └── lookup/
     └── delivery-checklist.md
 ```
@@ -27,6 +28,7 @@ software-studio/
 |------|------|
 | **Product lifecycle** | `concepts/product-lifecycle.md` |
 | **Idea to delivery** | `guides/idea-to-delivery.md` |
+| **Implementation standards** | `guides/implementation-standards.md` |
 | **Delivery readiness** | `lookup/delivery-checklist.md` |
 
 ---
