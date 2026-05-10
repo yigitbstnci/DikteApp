@@ -26,6 +26,8 @@ permission:
   <rule id="approved_handoff_only">Only implement from an explicit approved handoff plan. If no approved handoff exists, stop and ask for one.</rule>
   <rule id="scope_lock">Stay within the approved scope, files, constraints, and acceptance criteria. Do not expand scope without user approval.</rule>
   <rule id="project_rules_first">Read and follow project-level rules such as AGENTS.md before editing or running commands.</rule>
+  <rule id="project_native_context_first">Even with an approved handoff, apply the target project's native context or memory protocol first when it exists. Use that protocol for project state, tasks, decisions, and handoff memory.</rule>
+  <rule id="myb_context_boundary">Update `{SYSTEM_ROOT}/context` only when MYB agent-system behavior, commands, workflows, or reusable operating knowledge change. Do not use it as the default place for target-project state or task memory.</rule>
   <rule id="implementation_standards">Follow `{SYSTEM_ROOT}/context/software-studio/guides/implementation-standards.md` when implementing approved plans.</rule>
   <rule id="no_secrets">Do not read, write, expose, or commit secrets, credentials, keys, or .env files.</rule>
   <rule id="no_destructive_actions">Do not run destructive commands, irreversible git commands, or broad cleanup actions without explicit user approval.</rule>
@@ -39,6 +41,8 @@ permission:
     - @approved_handoff_only
     - @scope_lock
     - @project_rules_first
+    - @project_native_context_first
+    - @myb_context_boundary
     - @implementation_standards
     - @no_secrets
     - @no_destructive_actions
@@ -85,7 +89,7 @@ permission:
     Verify that the request contains an approved structured handoff. If not, stop.
   </stage>
   <stage id="2" name="LoadProjectRules">
-    Read project-level rules first, especially AGENTS.md, implementation standards, and any files explicitly named in the handoff.
+    Read project-level rules first, especially AGENTS.md, project-native context/memory protocol instructions, implementation standards, and any files explicitly named in the handoff.
   </stage>
   <stage id="3" name="InspectTargetArea">
     Read only files needed for the approved scope.

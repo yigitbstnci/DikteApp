@@ -13,7 +13,9 @@
 - Context navigation: ./.opencode/context/navigation.md
 - System manifest: ./.opencode/system-manifest.json
 
-Project AGENTS.md rules remain higher priority.
+Project AGENTS.md rules remain higher priority. For Dikte, project memory and context source of truth is the repo-native protocol: run `make context-load`, then use `docs/current-state.md`, `docs/tasks.md`, `docs/decisions.md`, and `docs/context/index.yml` for current project state, tasks, decisions, and handoff memory.
+
+`.opencode/context` describes the MYB agent system, commands, workflows, and reusable agent operating knowledge. It is not Dikte's project-state memory. Before any Dikte project work, follow the Start Here protocol above; update Dikte context through the existing `docs/` + `make context-save` / `make context-check` workflow when a durable context update is needed.
 
 ## Commands
 

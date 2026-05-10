@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-05-01"
+updated_at: "2026-05-10"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-05-10-project-native-context-priority
+    date: "2026-05-10"
+    title: "project-native context priority"
+    path: docs/context/sessions/2026-05-10-project-native-context-priority.md
+    status: active
   - id: 2026-05-01-history-focus-context
     date: "2026-05-01"
     title: "history focus context"

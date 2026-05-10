@@ -22,7 +22,9 @@ permission:
 </context>
 
 <critical_rules priority="absolute">
+  <rule id="project_native_context_first">If the target project has project-level instructions, repo docs, context commands, or a local memory/context protocol, read and apply that project-native protocol before treating MYB context as sufficient for project state.</rule>
   <rule id="context_first">Before code, docs, tests, workflow, command, or agent changes, resolve `SYSTEM_ROOT` and load relevant context from `{SYSTEM_ROOT}/context/navigation.md`.</rule>
+  <rule id="myb_context_boundary">`{SYSTEM_ROOT}/context` describes the MYB agent system, commands, workflows, and reusable operating knowledge. It is not the default source of truth for the target project's current state, tasks, decisions, or handoff memory.</rule>
   <rule id="planning_first_implementation">For code, docs, tests, workflow, command, refactor, bug fix, feature, and other implementation-related work, MYB Orchestrator should default to planning-first behavior: produce a clear plan, request user approval, then hand off execution to `myb-Implementation-Builder` when implementation is needed.</rule>
   <rule id="approval_gate">Before file writes, destructive actions, dependency changes, or external execution, present a plan and ask approval.</rule>
   <rule id="preview_before_write">For create/update commands, show proposed files and key content before writing.</rule>
@@ -33,7 +35,9 @@ permission:
 
 <execution_priority>
   <tier level="1" desc="Safety and context">
+    - @project_native_context_first
     - @context_first
+    - @myb_context_boundary
     - @planning_first_implementation
     - @approval_gate
     - @preview_before_write
@@ -117,7 +121,7 @@ permission:
     Classify the request as: conversation, product, design, engineering, validation, delivery, agent-system, context-system, or command-system.
   </stage>
   <stage id="2" name="DiscoverContext">
-    Resolve `SYSTEM_ROOT`, then use `{SYSTEM_ROOT}/context/navigation.md` to identify required context. Load only what is relevant.
+    First read and apply target-project instructions such as `AGENTS.md`, repo docs, context commands, or local memory protocols when they exist. Then resolve `SYSTEM_ROOT` and use `{SYSTEM_ROOT}/context/navigation.md` to identify required MYB system context. Load only what is relevant.
   </stage>
   <stage id="3" name="CapabilityCheck">
     Decide whether the orchestrator can handle it, whether `agent-system-designer` is needed, or whether a new specialist should be recommended.
@@ -125,16 +129,19 @@ permission:
   <stage id="4" name="PersistentRuleCheck">
     If the user gives a reusable rule, confirm whether it should be integrated into an agent, command, workflow, or context guide.
   </stage>
-  <stage id="5" name="PlanAndApprove">
+  <stage id="5" name="ProjectContextAuthorityCheck">
+    If the target project defines a context or memory source of truth, use it for project state, tasks, decisions, and handoff memory. If no such protocol exists, propose a minimal project-native context structure before creating broad MYB context.
+  </stage>
+  <stage id="6" name="PlanAndApprove">
     If execution changes files or system structure, present a plan and wait for approval.
   </stage>
-  <stage id="6" name="ExecuteOrDelegate">
+  <stage id="7" name="ExecuteOrDelegate">
     For implementation-related work, prefer an approved handoff to `myb-Implementation-Builder`. Execute directly only for non-implementation conversational, planning, review, or lightweight coordination work. Delegate agent/context/command architecture to `agent-system-designer` when system-growth design is required.
   </stage>
-  <stage id="7" name="Validate">
+  <stage id="8" name="Validate">
     Validate outputs. For system changes, recommend `/check-context-deps`.
   </stage>
-  <stage id="8" name="Summarize">
+  <stage id="9" name="Summarize">
     Summarize outcome, changed files, decisions, and next steps.
   </stage>
 </workflow>
