@@ -64,3 +64,10 @@ This file records durable workflow and architecture decisions. Keep entries shor
 - Status: Accepted
 - Decision: Every history cleanup operation (`prune`, `clearAll`, `delete`) deletes the referenced clipboard asset files, then `cleanupOrphanAssets()` runs after every prune and clearAll to remove unreferenced assets. Automatic cleanup runs on app launch and after each history save.
 - Consequence: ClipboardAssets directory stays clean; no orphaned clipboard files accumulate when history entries are removed manually or via retention policy.
+
+## DKT-ADR-0010: Dikte Context Model Is A Reusable MYB Protocol
+
+- Date: 2026-05-12
+- Status: Accepted
+- Decision: The Dikte repo-resident context model is documented as a reusable project-native context protocol inside MYB `.opencode/context`.
+- Consequence: `.opencode/context` stores the reusable protocol, templates, and command guidance; Dikte project state remains in committed `docs/` files and `make context-*` commands.

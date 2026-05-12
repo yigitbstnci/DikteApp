@@ -1,7 +1,7 @@
 {
   "name": "myb-software-studio-system",
   "version": "1.0.0",
-  "updated": "2026-05-09",
+  "updated": "2026-05-12",
   "agents": [
     {
       "id": "myb-orchestrator",
@@ -16,6 +16,7 @@
         "context:software-studio/concepts/product-lifecycle",
         "context:software-studio/guides/implementation-standards",
         "context:agent-system/lookup/agent-recommendation-rules",
+        "context:agent-system/guides/project-native-context-protocol",
         "workflow:recommend-agent"
       ]
     },
@@ -45,9 +46,9 @@
   ],
   "commands": [
     { "id": "create-agent", "path": "command/create-agent.md", "dependencies": ["workflow:create-agent"] },
-    { "id": "init-project", "path": "command/init-project.md", "dependencies": ["workflow:init-project", "context:agent-system/guides/init-project-onboarding"] },
+    { "id": "init-project", "path": "command/init-project.md", "dependencies": ["workflow:init-project", "context:agent-system/guides/init-project-onboarding", "context:agent-system/guides/project-native-context-protocol", "context:agent-system/lookup/project-native-context-template"] },
     { "id": "update-agent", "path": "command/update-agent.md", "dependencies": ["workflow:update-agent"] },
-    { "id": "manage-context", "path": "command/manage-context.md", "dependencies": ["workflow:manage-context"] },
+    { "id": "manage-context", "path": "command/manage-context.md", "dependencies": ["workflow:manage-context", "context:agent-system/guides/project-native-context-protocol"] },
     { "id": "check-context-deps", "path": "command/check-context-deps.md", "dependencies": ["workflow:check-context-deps"] }
   ],
   "contexts": [
@@ -68,12 +69,14 @@
     "context:agent-system/guides/create-agent",
     "context:agent-system/guides/create-skill",
     "context:agent-system/guides/init-project-onboarding",
+    "context:agent-system/guides/project-native-context-protocol",
     "context:agent-system/guides/update-agent",
     "context:agent-system/guides/manage-context",
     "context:agent-system/guides/context-intake-rules",
     "context:agent-system/guides/use-skill",
     "context:agent-system/lookup/dependency-standards",
     "context:agent-system/lookup/agent-recommendation-rules",
+    "context:agent-system/lookup/project-native-context-template",
     "context:agent-system/lookup/skill-structure"
   ],
   "workflows": [

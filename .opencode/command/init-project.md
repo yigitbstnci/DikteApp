@@ -3,6 +3,8 @@ description: Initialize MYB Software Studio in an existing or fresh project
 dependencies:
   - workflow:init-project
   - context:agent-system/guides/init-project-onboarding
+  - context:agent-system/guides/project-native-context-protocol
+  - context:agent-system/lookup/project-native-context-template
   - context:core/guides/path-resolution
 ---
 
@@ -39,7 +41,8 @@ dependencies:
 6. Ask approval before writing.
 7. For existing projects, merge the MYB block from `AGENTS_TEMPLATE.md`; never overwrite existing `AGENTS.md`.
 8. For fresh projects, ask start questions and create a base project `AGENTS.md`.
-9. Create/update project context only after approval.
+9. If no project-native context protocol exists, recommend the portable protocol and preview the template before writing.
+10. Create/update project context only after approval.
 
 ## Output Language
 
@@ -100,15 +103,19 @@ Project AGENTS.md rules remain higher priority.
 
 Önerilen Kurulum:
 - AGENTS integration block merge et
-- Gerekirse project context oluştur/güncelle
+- Gerekirse project-native context protocol oluştur/güncelle
 - Gerekirse specialist agent öner
 
 Specialist Agent Kararı:
 - Şimdilik yeni agent önerilmiyor/öneriliyor
 - Neden: ...
 
+Project-Native Context Kararı:
+- Mevcut protokol: var/yok
+- Öneri: ...
+
 Seçenekler:
 A) Sadece AGENTS integration block ekle
-B) AGENTS block + project context oluştur
+B) AGENTS block + project-native context protocol oluştur
 C) Hiçbir değişiklik yapma
 ```

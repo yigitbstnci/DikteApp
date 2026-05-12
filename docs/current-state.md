@@ -1,6 +1,6 @@
 # Dikte Current State
 
-Last updated: 2026-05-01
+Last updated: 2026-05-12
 
 ## Snapshot
 
@@ -40,6 +40,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - `make context-save` creates a session summary and updates the index.
 - Context session summaries are reserved for meaningful development blocks or daily summaries; runtime log sessions and raw log dumps stay out of committed context.
 - `make context-check` validates the context surface.
+- MYB `.opencode/context` now includes a reusable project-native context protocol guide and setup template based on Dikte's repo-resident model.
 - No active context-system implementation task remains; `DKT-TASK-0001` is now an ongoing maintenance protocol.
 
 ## Branch And Workflow Notes

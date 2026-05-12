@@ -4,6 +4,7 @@ dependencies:
   - agent:agent-system-designer
   - workflow:manage-context
   - context:agent-system/guides/manage-context
+  - context:agent-system/guides/project-native-context-protocol
 ---
 
 # /manage-context
@@ -23,6 +24,7 @@ dependencies:
 ## Rules
 
 - Create context only for reusable knowledge.
+- Keep project current state, tasks, decisions, and handoff summaries in the target project's native context protocol.
 - Keep files small and focused.
 - Ask whether missing knowledge should be collected from the user or extracted from files.
 - Update navigation and system manifest when context changes.
@@ -34,7 +36,7 @@ dependencies:
 
 | Operation | Behavior |
 |---|---|
-| `map` | Show context categories and loading strategy |
+| `map` | Show context categories, loading strategy, and project/native authority split |
 | `create for <agent>` | Ask what reusable knowledge the agent needs |
 | `update <file>` | Revise context with preview and version note |
 | `organize <category>` | Move files into function-based folders |
@@ -46,3 +48,5 @@ dependencies:
 3. What decision should this context improve?
 4. Which folder fits: concepts, guides, lookup, examples, or errors?
 5. What related files should be linked?
+
+If the answer is current project state or task memory, route it to the target project's native context files instead of `.opencode/context`.

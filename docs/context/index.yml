@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-05-10"
+updated_at: "2026-05-12"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-05-12-portable-project-native-context-protocol
+    date: "2026-05-12"
+    title: "portable project-native context protocol"
+    path: docs/context/sessions/2026-05-12-portable-project-native-context-protocol.md
+    status: active
   - id: 2026-05-10-project-native-context-priority
     date: "2026-05-10"
     title: "project-native context priority"
@@ -68,6 +73,7 @@ decisions:
   - DKT-ADR-0007
   - DKT-ADR-0008
   - DKT-ADR-0009
+  - DKT-ADR-0010
 tasks:
   active: []
   ongoing:
@@ -79,3 +85,4 @@ tasks:
     - DKT-TASK-0008
     - DKT-TASK-0009
     - DKT-TASK-0010
+    - DKT-TASK-0011

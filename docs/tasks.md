@@ -18,6 +18,12 @@ No active tasks are currently recorded.
 
 ## Completed
 
+### DKT-TASK-0011: Portable Project-Native Context Protocol
+
+- Status: Completed
+- Goal: Convert Dikte's repo-resident context model into reusable MYB `.opencode` protocol guidance and a setup template for other projects.
+- Date: 2026-05-12
+
 ### DKT-TASK-0010: History Retention and Cleanup
 
 - Status: Completed

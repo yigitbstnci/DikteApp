@@ -1,4 +1,4 @@
-<!-- Context: agent-system/guides | Priority: critical | Version: 1.0 | Updated: 2026-05-09 -->
+<!-- Context: agent-system/guides | Priority: critical | Version: 1.0 | Updated: 2026-05-12 -->
 
 # Init Project Onboarding
 
@@ -13,6 +13,8 @@
 - Report confidence and missing information instead of guessing.
 - Default user-facing output should be Turkish unless the user requests another language.
 - Include a short project understanding summary after reading project docs.
+- If the project has no durable context protocol, recommend the project-native context protocol; do not create it without approval.
+- If the project already has context commands or docs, use those as project-state authority instead of moving state into `.opencode/context`.
 
 ## Existing Project Output
 
@@ -43,7 +45,22 @@ Next: AGENTS block merge + optional project context
 - Önerilen AGENTS Integration Block
 - Önerilen Kurulum
 - Specialist Agent Kararı
+- Project-Native Context Kararı
 - Seçenekler
+
+## Project-Native Context Decision
+
+Report one of these outcomes during onboarding:
+
+```text
+Project-Native Context Kararı:
+- Mevcut protokol bulundu: make context-load / docs/context / ...
+- Eksik: kalıcı project-state hafızası yok
+- Öneri: AGENTS block + project-native context protocol şablonu
+- Not: .opencode/context reusable MYB bilgisi içindir; project-state oraya taşınmamalı
+```
+
+When recommending setup, use `lookup/project-native-context-template.md` and preview the exact files before writing.
 
 ## Specialist Decision
 
@@ -69,3 +86,5 @@ Next: create base AGENTS.md + project context
 - ../../core/guides/path-resolution.md
 - create-agent.md
 - manage-context.md
+- project-native-context-protocol.md
+- ../lookup/project-native-context-template.md
