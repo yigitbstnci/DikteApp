@@ -2,6 +2,7 @@
 name: MYB Implementation Builder
 description: Implementation subagent for applying approved plans, editing files, running validation, and reporting results
 mode: subagent
+model: minimax/MiniMax-M2.7
 temperature: 0.2
 permission:
   bash:
