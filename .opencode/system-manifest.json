@@ -6,7 +6,7 @@
     {
       "id": "myb-orchestrator",
       "name": "MYB Orchestrator",
-      "path": "agent/myb-Orchestrator.md",
+      "path": "agents/myb-Orchestrator.md",
       "type": "primary",
       "dependencies": [
         "context:core/concepts/operating-principles",
@@ -23,7 +23,7 @@
     {
       "id": "agent-system-designer",
       "name": "Agent System Designer",
-      "path": "agent/subagents/agent-system-designer.md",
+      "path": "agents/agent-system-designer.md",
       "type": "subagent",
       "dependencies": [
         "context:agent-system/concepts/agent-design-principles",
@@ -34,8 +34,8 @@
     {
       "id": "myb-implementation-builder",
       "name": "MYB Implementation Builder",
-      "path": "agent/subagents/myb-Implementation-Builder.md",
-      "type": "subagent",
+      "path": "agents/myb-Implementation-Builder.md",
+      "type": "primary",
       "dependencies": [
         "context:core/guides/execution-workflow",
         "context:core/guides/safety-and-approval",

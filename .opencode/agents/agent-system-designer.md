@@ -152,7 +152,7 @@ temperature: 0.2
 <path_generation_rules>
   When generating or updating files, use SYSTEM_ROOT-based references:
   - `{SYSTEM_ROOT}/context/navigation.md`
-  - `{SYSTEM_ROOT}/agent/subagents/{agent-name}.md`
+  - `{SYSTEM_ROOT}/agents/{agent-name}.md`
   - `{SYSTEM_ROOT}/command/{command-name}.md`
   - `{SYSTEM_ROOT}/workflows/{workflow-name}.md`
   - `{SYSTEM_ROOT}/system-manifest.json`

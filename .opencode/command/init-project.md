@@ -94,7 +94,7 @@ Missing Information:
 ## MYB Software Studio Integration
 
 - SYSTEM_ROOT: ./.opencode
-- Primary agent: ./.opencode/agent/myb-Orchestrator.md
+- Primary agent: ./.opencode/agents/myb-Orchestrator.md
 - Context navigation: ./.opencode/context/navigation.md
 - System manifest: ./.opencode/system-manifest.json
 

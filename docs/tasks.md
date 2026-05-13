@@ -40,7 +40,7 @@ No active tasks are currently recorded.
 
 - Status: Completed
 - Goal: Persist real settings for options currently represented by `.constant(...)` bindings.
-- Details: `AppSettings` model added with `WhisperModel`, `DictationLanguage` settings and `UserDefaults` persistence. The menu bar now opens a SwiftUI panel with an embedded settings tab and `KeyboardShortcuts.Recorder`; model/language settings are live bindings with disabled states during recording/processing.
+- Details: `AppSettings` model added with `WhisperModel`, `DictationLanguage` settings and `UserDefaults` persistence; model/language settings are live bindings with disabled states during recording/processing.
 - Date: 2026-04-30
 
 ### DKT-TASK-0008: Audio Optimization and Transcription Speed

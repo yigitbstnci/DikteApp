@@ -8,8 +8,8 @@ This system is designed as a small but expandable software studio operating syst
 
 ## Core Components
 
-- `agent/myb-Orchestrator.md` — main universal orchestrator inspired by OpenAgent patterns.
-- `agent/subagents/agent-system-designer.md` — specialist for agent, context, command, and dependency design.
+- `agents/myb-Orchestrator.md` — main universal orchestrator inspired by OpenAgent patterns.
+- `agents/agent-system-designer.md` — specialist for agent, context, command, and dependency design.
 - `command/create-agent.md` — create new agents through interview, context intake, preview, and approval.
 - `command/init-project.md` — onboard the system into existing or fresh projects.
 - `command/update-agent.md` — update existing agents using user requests plus structural analysis.
@@ -64,7 +64,7 @@ Use this pattern when adapting the system:
 
 ```text
 {SYSTEM_ROOT}/context/navigation.md
-{SYSTEM_ROOT}/agent/myb-Orchestrator.md
+{SYSTEM_ROOT}/agents/myb-Orchestrator.md
 {SYSTEM_ROOT}/command/create-agent.md
 {SYSTEM_ROOT}/workflows/create-agent.md
 ```

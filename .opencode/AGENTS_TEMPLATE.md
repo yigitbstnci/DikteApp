@@ -22,7 +22,7 @@ If the target project already has an `AGENTS.md`, do not overwrite it. Keep the 
 This folder contains a portable agent system for managing software products from idea to delivery.
 
 - `SYSTEM_ROOT`: folder containing `system-manifest.json`
-- Primary agent: `{SYSTEM_ROOT}/agent/myb-Orchestrator.md`
+- Primary agent: `{SYSTEM_ROOT}/agents/myb-Orchestrator.md`
 - Context navigation: `{SYSTEM_ROOT}/context/navigation.md`
 - System manifest: `{SYSTEM_ROOT}/system-manifest.json`
 
@@ -36,7 +36,7 @@ If the target project already has an `AGENTS.md`, add a short block like this in
 This project uses the MYB Software Studio agent system.
 
 - SYSTEM_ROOT: ./newsystem
-- Primary agent: ./newsystem/agent/myb-Orchestrator.md
+- Primary agent: ./newsystem/agents/myb-Orchestrator.md
 - Context navigation: ./newsystem/context/navigation.md
 - System manifest: ./newsystem/system-manifest.json
 

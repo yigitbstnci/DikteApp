@@ -123,7 +123,7 @@ struct FloatingHUDView: View {
                     Text("Model Ready")
                         .font(.dzSmallText())
                         .foregroundColor(.dzSuccess)
-                    Text("Kayıt kısayolu Ayarlar'dan değiştirilebilir")
+                    Text("Kayıt kısayolu: ⌘⇧Space")
                         .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundColor(.dzTextMuted)
                 }

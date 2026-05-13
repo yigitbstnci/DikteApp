@@ -8,8 +8,8 @@ Bu sistem, küçük ama genişleyebilir bir software studio işletim sistemi ola
 
 ## Ana Bileşenler
 
-- `agent/myb-Orchestrator.md` — OpenAgent pattern’lerinden esinlenen ana universal orchestrator.
-- `agent/subagents/agent-system-designer.md` — agent, context, command ve dependency tasarımı için uzman agent.
+- `agents/myb-Orchestrator.md` — OpenAgent pattern’lerinden esinlenen ana universal orchestrator.
+- `agents/agent-system-designer.md` — agent, context, command ve dependency tasarımı için uzman agent.
 - `command/create-agent.md` — interview, context intake, preview ve approval akışıyla yeni agent oluşturur.
 - `command/init-project.md` — sistemi mevcut veya sıfırdan projelere güvenli şekilde onboard eder.
 - `command/update-agent.md` — kullanıcı talepleri ve yapısal analiz ile mevcut agentları günceller.
@@ -64,7 +64,7 @@ Sistemi başka bir runtime’a uyarlarken şu path pattern’ini kullan:
 
 ```text
 {SYSTEM_ROOT}/context/navigation.md
-{SYSTEM_ROOT}/agent/myb-Orchestrator.md
+{SYSTEM_ROOT}/agents/myb-Orchestrator.md
 {SYSTEM_ROOT}/command/create-agent.md
 {SYSTEM_ROOT}/workflows/create-agent.md
 ```

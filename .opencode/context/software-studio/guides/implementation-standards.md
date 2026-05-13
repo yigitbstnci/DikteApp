@@ -50,4 +50,4 @@
 ## Related
 
 - `../../core/guides/execution-workflow.md`
-- `../../../agent/subagents/myb-Implementation-Builder.md`
+- `../../../agents/myb-Implementation-Builder.md`

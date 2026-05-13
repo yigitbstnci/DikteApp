@@ -11,7 +11,7 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 - `project.yml` drives the generated Xcode project.
 - `make run` is the default debug path, launches the built `.app` through LaunchServices, and stops its terminal log stream when the Dikte process exits.
 - `make test` runs the unit-test scheme.
-- The menu bar icon opens a SwiftUI panel with `Kayıt`, `Pano`, and `Ayarlar` tabs; the settings tab hosts the shortcut recorder directly.
+- The menu bar icon opens a native menu with `Kayıt`, `Pano`, `Ayarlar`, and `Geçmiş` actions.
 - Structured logs are written to `~/Library/Logs/Dikte/dikte.log` with session correlation IDs and key-value diagnostic metadata.
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.

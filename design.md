@@ -40,7 +40,7 @@ Menü çubuğundaki ikona tıklandığında açılacak ana pencere.
 ### 3. Ayarlar Ekranı (Settings View)
 macOS standartlarına uygun, sekmeli (tab) veya tek sayfa ayarlar penceresi.
 *İçerebileceği öğeler:*
-- **Genel (General):** Başlangıçta çalıştır (Launch at login), Global klavye kısayolu belirleme (ör: `⌘⇧Space`).
+- **Genel (General):** Başlangıçta çalıştır (Launch at login), sabit global klavye kısayolunu gösterme (ör: `⌘⇧Space`).
 - **Dil ve Model (Language & Model):** Dikte dili seçimi (Türkçe, İngilizce vb.), AI Modeli durumu (Yüklü / İndiriliyor...).
 - **Çıktı (Output):** Markdown formatı ayarları (Örn: Ekleri ¹, ², ³ şeklinde dipnot olarak ekle seçeneği).
 
