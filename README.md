@@ -11,7 +11,7 @@ When prompting AI, it's common to switch contexts repeatedly: writing a prompt, 
 3. **Copy context** while you speak (copy text, capture screenshots to clipboard, copy URLs).
 4. **Hit the Shortcut** again to stop.
 
-Dikte works completely **offline** using Apple's CoreML optimized Whisper models. It transcribes your speech and intelligently interleaves it with the items you copied based on exact timestamps, generating a single, unified Markdown output ready to be pasted to your AI of choice.
+Dikte works completely **offline** using Apple's CoreML optimized Whisper models. It transcribes youhazr speech and intelligently interleaves it with the items you copied based on exact timestamps, generating a single, unified Markdown output ready to be pasted to your AI of choice.
 
 ## ✨ Features
 
