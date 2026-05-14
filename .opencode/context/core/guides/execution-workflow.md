@@ -2,7 +2,7 @@
 
 # Execution Workflow
 
-**Core Idea**: Every task follows a predictable path: understand, load context, decide, plan, approve when needed, hand off implementation when appropriate, validate, review, and summarize.
+**Core Idea**: MYB Orchestrator follows a predictable path: understand, load context, decide, plan, approve handoff when needed, hand off implementation, review returned results, and summarize.
 
 ## Steps
 
@@ -10,14 +10,14 @@
 2. Resolve `SYSTEM_ROOT`, then load relevant context through `{SYSTEM_ROOT}/context/navigation.md`.
 3. Decide direct planning/review, specialist delegation, implementation-agent handoff, or agent recommendation.
 4. If the user gives a persistent rule, propose integrating it into the relevant agent/command prompt instead of only storing it as context.
-5. If files/actions may change, present a plan and ask approval.
-6. For implementation-related work, prefer a structured handoff to `myb-Implementation-Builder` after approval.
+5. If files/actions may change, present a plan and ask approval for handoff only.
+6. For implementation-related work, stop after the approved plan and instruct the user to switch to `MYB Implementation Builder`.
 7. Review validation outputs and stop on failure.
 8. Summarize decisions, changes, and next steps.
 
 ## Implementation Handoff
 
-For code, docs, tests, workflow, command, feature, bug fix, refactor, dependency, or validation-execution work, MYB Orchestrator should default to planning-first behavior and use `myb-Implementation-Builder` for execution after user approval.
+For code, docs, tests, workflow, command, feature, bug fix, refactor, dependency, or validation-execution work, MYB Orchestrator should default to planning-first behavior. It should produce an expert plan and a structured handoff, then ask the user to switch to `MYB Implementation Builder` for execution.
 
 The handoff should include:
 - request summary
