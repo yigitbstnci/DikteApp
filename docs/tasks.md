@@ -16,6 +16,11 @@ No active tasks are currently recorded.
 
 ## Backlog
 
+### DKT-TASK-0012: Smoke-Test Live Recording Shortcuts
+
+- Status: Backlog
+- Acceptance: On macOS 27 with Siri enabled, verify the new default starts and stops recording, a custom shortcut survives restart, and reset restores the default. Keep this manual so automated tests remain headless.
+
 ## Completed
 
 ### DKT-TASK-0011: Portable Project-Native Context Protocol

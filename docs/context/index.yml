@@ -1,5 +1,5 @@
 version: 1
-updated_at: "2026-05-12"
+updated_at: "2026-11-09"
 project: "Dikte"
 context_contract:
   source_of_truth: "committed Markdown files"
@@ -13,6 +13,11 @@ load_order:
   - docs/decisions.md
   - docs/architecture.md
 session_summaries:
+  - id: 2026-11-09-recording-shortcut-and-terminal-startup
+    date: "2026-11-09"
+    title: "Recording Shortcut and Terminal Startup"
+    path: docs/context/sessions/2026-11-09-recording-shortcut-and-terminal-startup.md
+    status: active
   - id: 2026-05-12-portable-project-native-context-protocol
     date: "2026-05-12"
     title: "portable project-native context protocol"
@@ -78,7 +83,8 @@ tasks:
   active: []
   ongoing:
     - DKT-TASK-0001
-  backlog: []
+  backlog:
+    - DKT-TASK-0012
   completed:
     - DKT-TASK-0004
     - DKT-TASK-0007

@@ -1,9 +1,12 @@
 SHELL := /bin/zsh
 
+.DEFAULT_GOAL := run
+
 PROJECT := Dikte.xcodeproj
 SCHEME := Dikte
 CONFIGURATION ?= Debug
 DESTINATION ?= platform=macOS
+DERIVED_DATA_PATH ?= $(CURDIR)/.build/DerivedData
 APP_PATH_FILE := .build/dikte-app-path
 LOG_DIR := $(HOME)/Library/Logs/Dikte
 LOG_FILE := $(LOG_DIR)/dikte.log
@@ -18,12 +21,14 @@ build: generate
 		-project "$(PROJECT)" \
 		-scheme "$(SCHEME)" \
 		-configuration "$(CONFIGURATION)" \
+		-derivedDataPath "$(DERIVED_DATA_PATH)" \
 		build
 	@mkdir -p .build
 	@xcodebuild \
 		-project "$(PROJECT)" \
 		-scheme "$(SCHEME)" \
 		-configuration "$(CONFIGURATION)" \
+		-derivedDataPath "$(DERIVED_DATA_PATH)" \
 		-showBuildSettings 2>/dev/null | \
 		awk -F ' = ' '/TARGET_BUILD_DIR = / { dir = $$2 } /FULL_PRODUCT_NAME = / { name = $$2 } END { if (dir != "" && name != "") print dir "/" name }' > "$(APP_PATH_FILE)"
 	@test -s "$(APP_PATH_FILE)"
@@ -81,6 +86,7 @@ test: generate
 		-project "$(PROJECT)" \
 		-scheme "$(SCHEME)" \
 		-destination "$(DESTINATION)" \
+		-derivedDataPath "$(DERIVED_DATA_PATH)" \
 		test
 
 verify: context-check test
@@ -94,6 +100,7 @@ clean:
 		-project "$(PROJECT)" \
 		-scheme "$(SCHEME)" \
 		-configuration "$(CONFIGURATION)" \
+		-derivedDataPath "$(DERIVED_DATA_PATH)" \
 		clean
 
 context-load:

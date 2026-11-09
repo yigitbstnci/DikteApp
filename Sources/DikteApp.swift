@@ -60,6 +60,14 @@ struct DikteApp: App {
                 FloatingHUDManager.shared.showHUD(appState: appState)
             }
         }
+
+        Window("Kayıt Kısayolu", id: RecordingShortcutSettingsView.windowID) {
+            RecordingShortcutSettingsView()
+                .environment(appState)
+        }
+        .defaultPosition(.center)
+        .defaultLaunchBehavior(.suppressed)
+        .windowResizability(.contentSize)
     }
 }
 

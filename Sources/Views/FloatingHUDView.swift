@@ -123,9 +123,11 @@ struct FloatingHUDView: View {
                     Text("Model Ready")
                         .font(.dzSmallText())
                         .foregroundColor(.dzSuccess)
-                    Text("Kayıt kısayolu: ⌘⇧Space")
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
-                        .foregroundColor(.dzTextMuted)
+                    if let shortcut = appState.recordingShortcut {
+                        Text("Kayıt kısayolu: \(shortcut.description)")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundColor(.dzTextMuted)
+                    }
                 }
             case .failed(let message):
                 Image(systemName: "xmark.circle.fill")

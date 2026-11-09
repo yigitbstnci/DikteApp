@@ -1,6 +1,6 @@
 # Dikte Current State
 
-Last updated: 2026-05-12
+Last updated: 2026-11-09
 
 ## Snapshot
 
@@ -9,13 +9,14 @@ Dikte is a macOS SwiftUI menu bar app for privacy-first dictation with clipboard
 ## Current Implementation
 
 - `project.yml` drives the generated Xcode project.
-- `make run` is the default debug path, launches the built `.app` through LaunchServices, and stops its terminal log stream when the Dikte process exits.
+- Bare `make` runs `make run`, which launches the built `.app` through LaunchServices and stops its terminal log stream when Dikte exits. Build, app path lookup, test, and clean share repo-local `.build/DerivedData` by default.
 - `make test` runs the unit-test scheme.
 - The menu bar icon opens a native menu with `Kayıt`, `Pano`, `Ayarlar`, and `Geçmiş` actions.
+- Settings lets users change, clear, or reset the global recording shortcut. Control + Shift + Space replaces the old Siri-conflicting default on first launch; custom and disabled choices are preserved. The menu and HUD show the selected shortcut.
 - Structured logs are written to `~/Library/Logs/Dikte/dikte.log` with session correlation IDs and key-value diagnostic metadata.
 - Clipboard assets are persisted under `~/Library/Application Support/Dikte/ClipboardAssets`.
 - Whisper models are cached under `~/Library/Application Support/Dikte/Models`.
-- Unit tests currently cover merge behavior, output formatting, clipboard item formatting, terminal text confirmation helpers, transcript cleanup, cached model folder detection, history store persistence, and log line formatting. 81 tests pass.
+- Unit tests cover merge behavior, output formatting, clipboard capture helpers, transcript cleanup, cached model detection, history persistence, logging, and shortcut migration. 87 tests pass.
 - Output format uses `[focus-context ¹]` inline markers plus `Attachments [each file = what speaker is looking at in that moment, in chronological order - read to understand speech references]` footer.
 - History screen: persistent JSON storage, resizable window, searchable detail panel with colored focus-context markers and hover popover previews for attachments.
 - History retention: configurable via `HistoryRetentionOption` (`1 gün`, `7 gün`, `30 gün`, `Sınırsız`) persisted via UserDefaults. Automatic cleanup runs on app launch and after each new history save. Pruning removes history entries older than the selected threshold, deletes their referenced clipboard asset files, and sweeps orphan ClipboardAssets. Manual cleanup ("7 günden eski kayıtları temizle", "Tüm geçmişi temizle") in the history window with confirmation dialogs.

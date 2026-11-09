@@ -2,18 +2,6 @@ import Foundation
 import SwiftUI
 import KeyboardShortcuts
 
-// MARK: - Global Keyboard Shortcut Names
-
-extension KeyboardShortcuts.Name {
-    /// Toggle recording on / off (default: ⌘⇧Space)
-    static let toggleRecording = Self(
-        "toggleRecording",
-        default: .init(.space, modifiers: [.command, .shift])
-    )
-}
-
-// MARK: - App State
-
 /// Central observable state that drives the entire app.
 @MainActor
 @Observable
@@ -21,6 +9,7 @@ final class AppState {
 
     // MARK: Settings
     let settings = AppSettings()
+    private(set) var recordingShortcut: KeyboardShortcuts.Shortcut?
 
     // MARK: Recording state
     var isRecording = false
@@ -58,16 +47,21 @@ final class AppState {
     private var activeRecordingID: String?
 
     init() {
-        // Register global keyboard shortcut
-        KeyboardShortcuts.onKeyUp(for: .toggleRecording) { [weak self] in
-            Task { @MainActor in
-                self?.toggleRecording()
-            }
-        }
-
         // Pre-load the Whisper model in the background so first recording is fast.
         // XCTest launches the app target as a test host; avoid model downloads there.
         if !Self.isRunningTests {
+            let name = KeyboardShortcuts.Name.toggleRecording
+            let storedShortcut = name.shortcut
+            let shortcut = RecordingShortcut.migrate(storedShortcut, defaults: .standard)
+            if shortcut != storedShortcut {
+                name.shortcut = shortcut
+            }
+            refreshRecordingShortcut()
+            KeyboardShortcuts.onKeyUp(for: name) { [weak self] in
+                Task { @MainActor in
+                    self?.toggleRecording()
+                }
+            }
             FloatingHUDManager.shared.showHUD(appState: self)
             prepareSelectedModel(reloadExisting: false)
             performHistoryCleanup()
@@ -75,6 +69,10 @@ final class AppState {
     }
 
     // MARK: - Actions
+
+    func refreshRecordingShortcut() {
+        recordingShortcut = KeyboardShortcuts.Name.toggleRecording.shortcut
+    }
 
     func toggleRecording() {
         if isRecording {

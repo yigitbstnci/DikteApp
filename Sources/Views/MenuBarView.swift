@@ -4,6 +4,7 @@ import AppKit
 /// Native dropdown content shown when the menu bar icon is clicked.
 struct MenuBarView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
 
     @State private var selectedModelID: String = ""
     @State private var selectedLanguageCode: String = ""
@@ -77,8 +78,8 @@ struct MenuBarView: View {
             Text("Kayıt aktif")
         } else if appState.showResult {
             Text("Sonuç panoda")
-        } else {
-            Text("Kısayol: ⌘⇧Space")
+        } else if let shortcut = appState.recordingShortcut {
+            Text("Kısayol: \(shortcut.description)")
         }
     }
 
@@ -99,6 +100,15 @@ struct MenuBarView: View {
 
     @ViewBuilder
     private var settingsItems: some View {
+        Button {
+            openWindow(id: RecordingShortcutSettingsView.windowID)
+            NSApp.activate()
+        } label: {
+            Label("Kayıt Kısayolu…", systemImage: "keyboard")
+        }
+
+        Divider()
+
         Picker("Model", selection: $selectedModelID) {
             ForEach(WhisperModel.availableModels) { model in
                 Text(model.displayName).tag(model.id)
